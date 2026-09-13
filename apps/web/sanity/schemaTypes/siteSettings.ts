@@ -1,0 +1,86 @@
+import { defineField, defineType } from 'sanity';
+import { CogIcon } from '@sanity/icons';
+
+export const siteSettings = defineType({
+  name: 'siteSettings',
+  title: 'إعدادات الموقع',
+  type: 'document',
+  icon: CogIcon,
+  groups: [
+    { name: 'contact', title: 'تواصل', default: true },
+    { name: 'brand', title: 'الشعار والهوية' },
+    { name: 'seo', title: 'محركات البحث' },
+  ],
+  fields: [
+    defineField({
+      name: 'brandName',
+      title: 'اسم العلامة',
+      type: 'string',
+      initialValue: 'Nora Group',
+      group: 'brand',
+      validation: (R) => R.required(),
+    }),
+    defineField({ name: 'tagline', title: 'الشعار النصي', type: 'localeString', group: 'brand' }),
+    defineField({ name: 'pillars', title: 'الركائز', type: 'localeString', group: 'brand' }),
+    defineField({
+      name: 'phoneDisplay',
+      title: 'الهاتف (للعرض)',
+      type: 'string',
+      description: 'مثال: 052-465-9510',
+      group: 'contact',
+      validation: (R) => R.required(),
+    }),
+    defineField({
+      name: 'phoneTel',
+      title: 'الهاتف للنقر (E.164)',
+      type: 'string',
+      description: 'مثال: +972524659510 — لا تغيّره إلا إذا تغيّر الرقم.',
+      group: 'contact',
+      validation: (R) => R.required(),
+    }),
+    defineField({
+      name: 'whatsappE164',
+      title: 'واتساب (أرقام فقط)',
+      type: 'string',
+      description: 'مثال: 972524659510 — لا تغيّره إلا إذا تغيّر الرقم.',
+      group: 'contact',
+      validation: (R) => R.required(),
+    }),
+    defineField({
+      name: 'email',
+      title: 'البريد الإلكتروني',
+      type: 'string',
+      group: 'contact',
+      validation: (R) => R.required().email(),
+    }),
+    defineField({ name: 'address', title: 'العنوان', type: 'localeString', group: 'contact' }),
+    defineField({ name: 'workingHours', title: 'ساعات العمل', type: 'localeString', group: 'contact' }),
+    defineField({ name: 'whatsappMessage', title: 'رسالة واتساب الافتراضية', type: 'localeText', group: 'contact' }),
+    defineField({
+      name: 'logo',
+      title: 'الشعار (خلفية فاتحة)',
+      type: 'image',
+      group: 'brand',
+      options: { hotspot: true },
+    }),
+    defineField({
+      name: 'logoDark',
+      title: 'الشعار (خلفية داكنة)',
+      type: 'image',
+      group: 'brand',
+      options: { hotspot: true },
+    }),
+    defineField({ name: 'contactQr', title: 'رمز QR في صفحة التواصل', type: 'image', group: 'contact' }),
+    defineField({ name: 'seoTitle', title: 'عنوان SEO', type: 'localeString', group: 'seo' }),
+    defineField({
+      name: 'seoDescription',
+      title: 'وصف SEO',
+      type: 'localeText',
+      group: 'seo',
+      validation: (R) => R.max(320),
+    }),
+  ],
+  preview: {
+    prepare: () => ({ title: 'إعدادات الموقع' }),
+  },
+});
