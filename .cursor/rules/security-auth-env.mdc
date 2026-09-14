@@ -1,0 +1,30 @@
+---
+description: Security, authentication, authorization, and environment-variable rules
+alwaysApply: true
+---
+
+# Security, Auth, and Environment
+
+## Secrets
+
+- Never expose secrets, API keys, private tokens, passwords, Sanity write tokens, service-role keys, or auth secrets in client-side code.
+- Never hard-code secrets. Never print secret values in terminal output, logs, docs, commits, or reports.
+- Keep `.env`, `.env.local`, `.env.production`, and equivalent secret files gitignored.
+- `.env.example` may list variable names and safe placeholders only — never real secret values.
+- When documenting env vars, document names and purpose, never secret values.
+
+## AuthN / AuthZ
+
+- Authentication and CMS content management are separate concerns.
+- Do not store user accounts as plaintext credentials in Sanity. Never use Sanity as a password database. Never store plaintext passwords.
+- Use secure password hashing or a reputable authentication provider.
+- Sessions must use secure, appropriately configured cookies or tokens.
+- Enforce authentication and authorization **server-side**. The UI is not a security boundary.
+- Never trust roles, permissions, user IDs, or ownership values supplied by the client.
+- Owner / Admin / Editor / Employee permissions must be explicit and documented.
+
+## Input and app security
+
+- Validate and sanitize all external input.
+- Protect against XSS, CSRF, injection, IDOR, privilege escalation, broken access control, open redirects, path traversal, unsafe uploads, brute-force attacks, and sensitive error leakage.
+---

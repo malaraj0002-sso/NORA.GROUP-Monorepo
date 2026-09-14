@@ -1,0 +1,22 @@
+---
+description: Git safety and dependency installation policy
+alwaysApply: true
+---
+
+# Git and Dependencies
+
+## Git
+
+- Do not force-push. Do not rewrite Git history unless explicitly requested.
+- Do not delete branches without approval.
+- Do not commit generated folders such as `.next`, build output, caches, or `node_modules` unless the project explicitly requires them.
+- Before major changes, verify the current branch and working tree.
+- Keep commits logical and reversible. Only commit when the user asks.
+
+## Dependencies
+
+- Do not install packages unless they are actually needed.
+- Before installing a package, check whether the existing stack already provides the required functionality.
+- Prefer stable, well-maintained packages compatible with the project's current Next.js / React / Node versions.
+- Avoid unnecessary dependencies. Do not upgrade major versions automatically.
+---

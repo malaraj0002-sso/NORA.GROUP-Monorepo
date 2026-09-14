@@ -1,0 +1,15 @@
+---
+description: Sanity CMS rules — existing project, schemas, and credential isolation
+globs: "**/sanity.{config,cli}.{ts,js},**/sanity/**/*.{ts,tsx,js,jsx},**/*schema*.{ts,js}"
+alwaysApply: false
+---
+
+# Sanity
+
+- Sanity is the CMS and source of truth for website content.
+- Use the existing Sanity project. Never create a new Sanity project automatically.
+- Never expose Sanity private/write credentials to the browser. Keep Sanity server credentials on the server only.
+- Inspect existing Sanity schemas before creating new schemas. Avoid duplicate content models.
+- Document every Sanity schema or data-model change.
+- User accounts must not be stored as plaintext credentials in Sanity.
+---

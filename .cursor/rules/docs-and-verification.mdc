@@ -1,0 +1,26 @@
+---
+description: Documentation accuracy and verification requirements after implementation
+alwaysApply: true
+---
+
+# Documentation and Verification
+
+## Documentation
+
+- Document meaningful implementation changes.
+- Never fabricate completed work. If something was not tested, say so explicitly.
+- Record errors encountered and how they were fixed.
+- Record important architectural decisions and their reasons.
+- Keep `PROJECT_AUDIT.md`, `IMPLEMENTATION_LOG.md`, and `FINAL_PROJECT_REPORT.md` accurate when those files exist.
+
+## After meaningful implementation
+
+- Run the appropriate lint checks.
+- Run type checking when available.
+- Run the production build.
+- Run relevant tests.
+- Verify affected routes and APIs, and authentication/authorization behavior.
+- Verify all supported languages, RTL and LTR layouts, and both Light and Dark modes.
+- Do not claim something works unless it was actually verified.
+- For web UI changes, verify in the browser (or the closest substitute) before declaring the task complete.
+---

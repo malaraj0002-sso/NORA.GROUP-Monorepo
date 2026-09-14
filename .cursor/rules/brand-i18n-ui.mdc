@@ -1,0 +1,32 @@
+---
+description: Nora Group brand, services, multilingual/RTL, and UI/UX identity
+alwaysApply: true
+---
+
+# Brand, Languages, and UI
+
+## Business
+
+Nora Group is a premium custom carpentry and interior-design business.
+
+Public services may include: kitchens; wardrobes and wall-to-wall closets; dressing rooms; custom furniture; interior wood design; exterior wood design.
+
+- Do **not** add doors as a Nora Group service.
+- Do **not** reintroduce door-related marketing copy unless explicitly requested.
+- Preserve the premium, architectural, modern, minimal, and sophisticated brand direction.
+
+## Languages
+
+- Website languages: Hebrew, Arabic, English, and Russian.
+- Dashboard UI: Arabic, Hebrew, and English (Russian only if the implementation stays clean).
+- Handle RTL/LTR correctly. Arabic/Hebrew content must not break layout, forms, navigation, or typography.
+- Do not mix translated strings into unrelated business logic.
+- Do not destroy existing translations when adding or modifying languages.
+
+## UI / UX
+
+- Preserve the luxury / minimal / architectural visual identity. Avoid generic templates and visual clutter.
+- Dark and Light modes must both be professional and accessible. Avoid theme flashing on initial page load.
+- Maintain responsive behavior across mobile, tablet, and desktop.
+- Do not introduce breaking layout changes without checking all supported languages and RTL/LTR layouts.
+---

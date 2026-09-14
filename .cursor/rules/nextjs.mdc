@@ -1,0 +1,22 @@
+---
+description: Next.js architecture, server/client boundaries, and API error handling
+globs: "apps/{web,dashboard}/**/*.{ts,tsx,js,jsx}"
+alwaysApply: false
+---
+
+# Next.js
+
+- Respect the existing Next.js architecture unless there is a documented reason to change it.
+- Keep server-only code server-side. Never import server secrets into Client Components.
+- Do not expose privileged API operations through client-side code.
+- Handle API errors explicitly.
+- Do not blindly call `response.json()` when the response may not contain valid JSON.
+- Handle empty responses, non-JSON responses, timeouts, and failed requests safely.
+
+## AI translation
+
+- AI translation must run through secure server-side code. Never expose an AI API key in browser/client code.
+- Automatically translated content must support human review before publication.
+- Handle API errors, timeouts, rate limits, retries, and invalid responses.
+- Do not overwrite approved translations without explicit logic allowing it. Preserve the original source content.
+---

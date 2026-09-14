@@ -1,0 +1,39 @@
+---
+description: Safety, audit-first workflow, phase discipline, and pre-change communication for Nora Group
+alwaysApply: true
+---
+
+# Safety, Audit, and Phases
+
+## Safety
+
+- Do not delete, overwrite, rename, or move important files without explicit approval when the change is destructive or hard to reverse.
+- Do not make large architectural changes without first documenting current architecture and the reason for change.
+- Never silently remove existing functionality. Preserve working behavior unless a change is explicitly required.
+- Before risky changes, create a clear backup point or Git commit when possible (only commit when the user asks).
+
+## Audit before implementation
+
+- Inspect the existing codebase before major changes. Search the repo; do not assume a feature is missing.
+- Do not create duplicate systems when an existing implementation can be safely improved.
+- When uncertain, stop and explain instead of guessing.
+
+## Communication before major change
+
+1. Explain what you found.
+2. Explain what you intend to change.
+3. Explain why.
+4. Identify risks.
+5. Implement only when the current phase has been approved.
+
+If a request conflicts with security, existing architecture, or another project requirement, stop and explain the conflict.
+
+## Phase discipline
+
+Never skip phases automatically.
+
+During an **Audit-only** phase:
+
+- Inspect only. Do not modify source code, install packages, migrate data, change Sanity schemas, authentication, or database structures, or delete/move files.
+- Produce the requested audit documentation, then stop and wait for approval.
+---
