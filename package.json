@@ -1,16 +1,24 @@
 {
-	"name": "nora-group-monorepo",
-	"version": "1.0.0",
-	"private": true,
-	"scripts": {
-	  "dev:web": "pnpm --filter web dev",
-	  "dev:dashboard": "pnpm --filter dashboard dev",
-	  "dev": "concurrently \"pnpm dev:web\" \"pnpm dev:dashboard\"",
-	  "build:web": "pnpm --filter web build",
-	  "build:dashboard": "pnpm --filter dashboard build",
-	  "build": "pnpm build:web && pnpm build:dashboard"
-	},
-	"devDependencies": {
-	  "concurrently": "^9.2.1"
-	}
+  "name": "nora-group-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "dev:web": "pnpm --filter @nora/web dev",
+    "dev:dashboard": "pnpm --filter @nora/dashboard dev",
+    "dev": "concurrently \"pnpm dev:web\" \"pnpm dev:dashboard\"",
+    "build:web": "pnpm --filter @nora/web build",
+    "build:dashboard": "pnpm --filter @nora/dashboard build",
+    "build": "pnpm build:web && pnpm build:dashboard",
+    "lint:web": "pnpm --filter @nora/web lint",
+    "lint:dashboard": "pnpm --filter @nora/dashboard lint",
+    "lint": "pnpm lint:web && pnpm lint:dashboard",
+    "typecheck:web": "pnpm --filter @nora/web typecheck",
+    "typecheck:dashboard": "pnpm --filter @nora/dashboard typecheck",
+    "typecheck": "pnpm typecheck:web && pnpm typecheck:dashboard",
+    "check": "pnpm typecheck:web && pnpm build"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
   }
+}

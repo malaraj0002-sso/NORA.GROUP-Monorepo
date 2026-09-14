@@ -1,10 +1,14 @@
 # Dependencies
 node_modules/
 
-# Next.js
+# Next.js / build output
 .next/
 out/
+dist/
+build/
+coverage/
 .vercel/
+.turbo/
 
 # Environment variables / Secrets
 .env
@@ -20,11 +24,19 @@ out/
 npm-debug.log*
 pnpm-debug.log*
 yarn-debug.log*
+yarn-error.log*
+
+# TypeScript
+*.tsbuildinfo
 
 # OS
 .DS_Store
 Thumbs.db
+desktop.ini
+ehthumbs.db
 
 # IDE
 .vscode/
 .idea/
+*.swp
+*.swo
