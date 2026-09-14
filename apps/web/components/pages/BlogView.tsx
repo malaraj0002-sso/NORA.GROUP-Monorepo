@@ -21,14 +21,14 @@ export function BlogView({ locale, content }: { locale: AppLocale; content: Site
         image={posts[0]?.image}
       />
 
-      <section className="section-padding bg-warm-50/60 relative overflow-hidden">
+      <section className="section-padding bg-background relative overflow-hidden">
         <div className="container-luxury grid gap-8 md:grid-cols-2 lg:grid-cols-3">
           {posts.map((post, i) => (
             <Reveal key={post.slug} delay={i * 40}>
               <Link
                 href={`/blog/${post.slug}`}
                 prefetch={true}
-                className="group relative flex flex-col overflow-hidden rounded-2xl border border-gold-200/60 bg-white shadow-sm transition-all duration-500 hover:-translate-y-2 hover:border-gold-400 hover:shadow-2xl hover:shadow-gold-500/15 h-full"
+                className="group relative flex flex-col overflow-hidden rounded-2xl border border-gold-200/60 bg-card shadow-sm transition-all duration-500 hover:-translate-y-2 hover:border-gold-400 hover:shadow-2xl hover:shadow-gold-500/15 h-full"
               >
                 {/* حاوية الصورة مع تدرج ورابط عائم */}
                 <div className="relative aspect-[16/10] w-full overflow-hidden bg-charcoal-900">
@@ -51,16 +51,16 @@ export function BlogView({ locale, content }: { locale: AppLocale; content: Site
                 <div className="p-6 flex-1 flex flex-col justify-between">
                   <div>
                     {/* شارة مقال فاخرة */}
-                    <div className="inline-flex items-center gap-1.5 rounded-full border border-gold-200/80 bg-gold-50/80 px-3 py-1 text-xs font-semibold text-gold-700 mb-3">
+                    <div className="inline-flex items-center gap-1.5 rounded-full border border-gold-200/80 bg-gold-400/10 px-3 py-1 text-xs font-semibold text-gold-600 mb-3">
                       <BookOpen className="h-3 w-3 text-gold-500" />
                       <span>{locale === 'ar' ? 'مقال' : 'Article'}</span>
                     </div>
 
-                    <h2 className="text-xl font-bold text-charcoal-900 transition-colors duration-300 group-hover:text-gold-600 line-clamp-2">
+                    <h2 className="text-xl font-bold text-foreground transition-colors duration-300 group-hover:text-gold-600 line-clamp-2">
                       {t(post.title, locale)}
                     </h2>
 
-                    <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-charcoal-600">
+                    <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-muted">
                       {t(post.excerpt, locale)}
                     </p>
                   </div>

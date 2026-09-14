@@ -9,6 +9,9 @@ import { LocalizedInput, LanguageTabs } from '../LanguageTabs';
 import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { CmsNotice } from '@/components/admin/CmsNotice';
+import { compactLocale, isLocalDraftId, postCms } from '@/lib/cms-client';
+import { useUiI18n } from '@/lib/i18n/UiI18nProvider';
 
 const SPEC_FIELDS: { key: keyof import('@/lib/types').MaterialSpec; label: string }[] = [
   { key: 'hardness', label: 'Hardness' },
@@ -27,6 +30,7 @@ const SPEC_FIELDS: { key: keyof import('@/lib/types').MaterialSpec; label: strin
 
 export function MaterialsModule() {
   const { data, addMaterial, updateMaterial, deleteMaterial } = useAdminData();
+  const { t } = useUiI18n();
   const { materials } = data;
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -35,14 +39,14 @@ export function MaterialsModule() {
   return (
     <div className="space-y-6">
       <SectionHeader
-        title="Materials & Finishes"
-        subtitle="Manage wood library with textures, specifications, and descriptions"
+        title={t('materials.title')}
+        subtitle={t('materials.subtitle')}
         icon={Layers}
-        action={<AddButton onClick={addMaterial} label="Add Material" />}
+        action={<AddButton onClick={addMaterial} label={t('materials.add')} />}
       />
 
       {materials.length === 0 ? (
-        <EmptyState icon={Layers} title="No materials yet" description="Add your first wood material to the library." action={<AddButton onClick={addMaterial} label="Add Material" />} />
+        <EmptyState icon={Layers} title={t('materials.empty')} description={t('materials.emptyHint')} action={<AddButton onClick={addMaterial} label={t('materials.add')} />} />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <AnimatePresence>
@@ -96,14 +100,45 @@ export function MaterialsModule() {
                     published={editingMaterial.published}
                     onChange={(v) => updateMaterial(editingMaterial.id, { published: v })}
                   />
-                  <DeleteButton onClick={() => { deleteMaterial(editingMaterial.id); setEditingId(null); }} />
+                  <DeleteButton onClick={async () => {
+                    if (!confirm(t('common.confirmDelete'))) return;
+                    if (!isLocalDraftId(editingMaterial.id)) {
+                      const result = await postCms({ resource: 'material', op: 'delete', id: editingMaterial.id });
+                      if (!result.ok) {
+                        alert(result.error);
+                        return;
+                      }
+                    }
+                    deleteMaterial(editingMaterial.id);
+                    setEditingId(null);
+                  }} />
                 </div>
+                <CmsNotice
+                  onSave={async () => {
+                    if (isLocalDraftId(editingMaterial.id)) {
+                      throw new Error('New materials need a slug. Create them in Studio or extend this form later.');
+                    }
+                    const result = await postCms({
+                      resource: 'material',
+                      op: 'patch',
+                      id: editingMaterial.id,
+                      data: {
+                        nameHe: editingMaterial.nameLocales.he || undefined,
+                        nameAr: editingMaterial.nameLocales.ar || undefined,
+                        nameEn: editingMaterial.nameLocales.en || undefined,
+                        description: compactLocale(editingMaterial.description),
+                        published: editingMaterial.published,
+                      },
+                    });
+                    if (!result.ok) throw new Error(result.error);
+                  }}
+                />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <ImageUpload
                     value={editingMaterial.textureImageUrl}
                     onChange={(url) => updateMaterial(editingMaterial.id, { textureImageUrl: url })}
-                    label="Texture Image"
+                    label={t('field.texture')}
                     aspect="aspect-square"
                   />
                   <div className="space-y-3">
@@ -143,7 +178,7 @@ export function MaterialsModule() {
                 <LocalizedInput
                   value={editingMaterial.description}
                   onChange={(v) => updateMaterial(editingMaterial.id, { description: v })}
-                  label="Description"
+                  label={t('field.description')}
                   textarea
                 />
 

@@ -19,11 +19,11 @@ export function MaterialsView({ locale, content }: { locale: AppLocale; content:
         image={materials[0]?.image}
       />
 
-      <section className="section-padding bg-warm-50/60">
+      <section className="section-padding bg-background">
         <div className="container-luxury grid gap-8 md:grid-cols-2">
           {materials.map((m, i) => (
             <Reveal key={m.slug} delay={i * 50}>
-              <article className="group relative grid overflow-hidden rounded-2xl border border-gold-200/50 bg-white shadow-sm transition-all duration-500 hover:-translate-y-1.5 hover:border-gold-400 hover:shadow-2xl hover:shadow-gold-500/15 sm:grid-cols-2">
+              <article className="group relative grid overflow-hidden rounded-2xl border border-gold-200/50 bg-card shadow-sm transition-all duration-500 hover:-translate-y-1.5 hover:border-gold-400 hover:shadow-2xl hover:shadow-gold-500/15 sm:grid-cols-2">
                 
                 {/* حاوية الصورة مع التدرج والأيقونة الفاخرة */}
                 <div className="relative min-h-[220px] overflow-hidden bg-charcoal-900">
@@ -55,17 +55,17 @@ export function MaterialsView({ locale, content }: { locale: AppLocale; content:
                       </span>
                     </div>
 
-                    <h2 className="text-xl font-bold text-charcoal-900 transition-colors duration-300 group-hover:text-gold-600">
+                    <h2 className="text-xl font-bold text-foreground transition-colors duration-300 group-hover:text-gold-600">
                       {t(m.name, locale)}
                     </h2>
 
-                    <p className="mt-2.5 text-sm leading-relaxed text-charcoal-600 line-clamp-3">
+                    <p className="mt-2.5 text-sm leading-relaxed text-muted line-clamp-3">
                       {t(m.description, locale)}
                     </p>
 
                     {/* خصائص الخامة */}
                     {m.characteristics && (
-                      <div className="mt-3 flex items-start gap-2 text-xs text-charcoal-700 bg-gold-50/50 p-2.5 rounded-lg border border-gold-100/60">
+                      <div className="mt-3 flex items-start gap-2 text-xs text-foreground bg-gold-400/10 p-2.5 rounded-lg border border-gold-100/60">
                         <ShieldCheck className="h-4 w-4 shrink-0 text-gold-600 mt-0.5" />
                         <span>{t(m.characteristics, locale)}</span>
                       </div>
@@ -73,7 +73,7 @@ export function MaterialsView({ locale, content }: { locale: AppLocale; content:
 
                     {/* استخدامات الخامة */}
                     {m.applications && (
-                      <div className="mt-2 flex items-start gap-2 text-xs text-charcoal-500">
+                      <div className="mt-2 flex items-start gap-2 text-xs text-muted">
                         <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-gold-500 mt-0.5" />
                         <span>{t(m.applications, locale)}</span>
                       </div>

@@ -9,7 +9,7 @@ export function NotFoundView({ locale, content }: { locale: AppLocale; content: 
   const nav = content.nav[locale];
 
   return (
-    <section className="relative flex min-h-[70vh] items-center justify-center overflow-hidden bg-warm-50/60 py-20">
+    <section className="relative flex min-h-[70vh] items-center justify-center overflow-hidden bg-background py-20">
       {/* خلفية جمالية ضوئية */}
       <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-30">
         <div className="h-[380px] w-[380px] rounded-full bg-gold-300/20 blur-3xl" />
@@ -17,10 +17,10 @@ export function NotFoundView({ locale, content }: { locale: AppLocale; content: 
 
       <div className="container-luxury relative z-10 max-w-xl text-center">
         <Reveal>
-          <div className="group relative rounded-3xl border border-gold-200/60 bg-white p-10 shadow-xl shadow-gold-500/5 overflow-hidden">
+          <div className="group relative rounded-3xl border border-gold-200/60 bg-card p-10 shadow-xl shadow-gold-500/5 overflow-hidden">
             
             {/* أيقونة البوصلة التفاعلية */}
-            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl border border-gold-200 bg-gold-50/80 text-gold-600 shadow-inner">
+            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl border border-gold-200 bg-gold-400/10 text-gold-600 shadow-inner">
               <Compass className="h-10 w-10 animate-spin-slow" />
             </div>
 
@@ -30,11 +30,11 @@ export function NotFoundView({ locale, content }: { locale: AppLocale; content: 
             </span>
 
             {/* العناوين من content.ui */}
-            <h1 className="text-2xl font-bold text-charcoal-900 sm:text-3xl">
+            <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
               {ui.notFoundTitle}
             </h1>
 
-            <p className="mt-3 text-sm leading-relaxed text-charcoal-600 sm:text-base">
+            <p className="mt-3 text-sm leading-relaxed text-muted sm:text-base">
               {ui.notFoundBody}
             </p>
 

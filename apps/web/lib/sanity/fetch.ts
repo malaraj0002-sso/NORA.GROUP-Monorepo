@@ -16,13 +16,31 @@ function asLocale(value: Partial<LocalizedString> | undefined, fallback: Localiz
 }
 
 /**
- * Pull published CMS documents and deep-merge onto seed defaults.
- * Missing CMS docs keep seed values so the site stays full during onboarding.
+ * Pull published CMS documents and merge onto seed defaults.
+ *
+ * If `siteSettings` exists, Sanity is the source of truth for each collection
+ * that loaded successfully (including empty arrays).
+ * If it does not, CMS documents overlay seed by slug/id so a Dashboard-created
+ * project can appear without wiping the live seed catalogue.
  */
 /** Safety-net revalidate if webhooks are misconfigured (tags still preferred). */
 const FETCH_OPTS = (tags: string[]) => ({
   next: { tags, revalidate: 3600 as const },
 });
+
+function mergeByKey<T>(seed: T[], cms: T[], keyOf: (item: T) => string): T[] {
+  if (!cms.length) return seed;
+  const byKey = new Map<string, T>();
+  for (const item of seed) {
+    const key = keyOf(item);
+    if (key) byKey.set(key, item);
+  }
+  for (const item of cms) {
+    const key = keyOf(item);
+    if (key) byKey.set(key, item);
+  }
+  return [...byKey.values()];
+}
 
 function settled<T>(result: PromiseSettledResult<T>, label: string): T | null {
   if (result.status === 'fulfilled') return result.value;
@@ -31,7 +49,7 @@ function settled<T>(result: PromiseSettledResult<T>, label: string): T | null {
 }
 
 export async function fetchSanityContent(): Promise<SiteContent | null> {
-  if (!isSanityConfigured()) return null;
+  if (!isSanityConfigured() || !client) return null;
 
   const [
     settingsRes,
@@ -115,6 +133,8 @@ export async function fetchSanityContent(): Promise<SiteContent | null> {
   const uiDocs = settled(uiDocsRes, 'uiLabels');
 
   const base = structuredClone(seedContent);
+  /** Singleton present → dataset is the live CMS; empty lists are real, not "not yet seeded". */
+  const cmsLive = Boolean(settings);
 
   if (settings) {
     base.settings = {
@@ -231,7 +251,7 @@ export async function fetchSanityContent(): Promise<SiteContent | null> {
     };
   }
 
-  if (services?.length) {
+  if (services) {
     const mapped = services
       .map((s: Record<string, unknown>) => ({
         slug: s.slug as SiteContent['services'][number]['slug'],
@@ -244,10 +264,10 @@ export async function fetchSanityContent(): Promise<SiteContent | null> {
         visible: s.visible !== false,
       }))
       .filter((s: { slug: string }) => isSafeSlug(s.slug));
-    if (mapped.length) base.services = mapped;
+    base.services = cmsLive ? mapped : mergeByKey(base.services, mapped, (s) => s.slug);
   }
 
-  if (projects?.length) {
+  if (projects) {
     const mapped = projects
       .map((p: Record<string, unknown>) => ({
         slug: String(p.slug),
@@ -259,10 +279,10 @@ export async function fetchSanityContent(): Promise<SiteContent | null> {
         visible: p.visible !== false,
       }))
       .filter((p: { slug: string }) => isSafeSlug(p.slug));
-    if (mapped.length) base.projects = mapped;
+    base.projects = cmsLive ? mapped : mergeByKey(base.projects, mapped, (p) => p.slug);
   }
 
-  if (materials?.length) {
+  if (materials) {
     const mapped = materials
       .map((m: Record<string, unknown>) => ({
         slug: String(m.slug),
@@ -275,11 +295,11 @@ export async function fetchSanityContent(): Promise<SiteContent | null> {
         visible: m.visible !== false,
       }))
       .filter((m: { slug: string }) => isSafeSlug(m.slug));
-    if (mapped.length) base.materials = mapped;
+    base.materials = cmsLive ? mapped : mergeByKey(base.materials, mapped, (m) => m.slug);
   }
 
-  if (testimonials?.length) {
-    base.testimonials = testimonials.map((t: Record<string, unknown>) => ({
+  if (testimonials) {
+    const mapped = testimonials.map((t: Record<string, unknown>) => ({
       id: String(t.id),
       name: String(t.name || ''),
       rating: Math.min(5, Math.max(1, Number(t.rating) || 5)),
@@ -287,9 +307,10 @@ export async function fetchSanityContent(): Promise<SiteContent | null> {
       project: asLocale(t.project as LocalizedString, Lempty()),
       visible: t.visible !== false,
     }));
+    base.testimonials = cmsLive ? mapped : mergeByKey(base.testimonials, mapped, (t) => t.id);
   }
 
-  if (blogPosts?.length) {
+  if (blogPosts) {
     const mapped = blogPosts
       .map((b: Record<string, unknown>) => ({
         slug: String(b.slug),
@@ -303,17 +324,18 @@ export async function fetchSanityContent(): Promise<SiteContent | null> {
         visible: b.visible !== false,
       }))
       .filter((b: { slug: string }) => isSafeSlug(b.slug));
-    if (mapped.length) base.blogPosts = mapped;
+    base.blogPosts = cmsLive ? mapped : mergeByKey(base.blogPosts, mapped, (b) => b.slug);
   }
 
-  if (faq?.length) {
-    base.faq = faq.map((f: Record<string, unknown>) => ({
+  if (faq) {
+    const mapped = faq.map((f: Record<string, unknown>) => ({
       id: String(f.id),
       category: String(f.category || ''),
       question: asLocale(f.question as LocalizedString, Lempty()),
       answer: asLocale(f.answer as LocalizedString, Lempty()),
       visible: f.visible !== false,
     }));
+    base.faq = cmsLive ? mapped : mergeByKey(base.faq, mapped, (f) => f.id);
   }
 
   if (uiDocs?.length) {
@@ -370,7 +392,7 @@ export async function fetchSanityContent(): Promise<SiteContent | null> {
 }
 
 export async function fetchBlogPostContent(slug: string): Promise<LocalizedString | null> {
-  if (!isSanityConfigured() || !isSafeSlug(slug)) return null;
+  if (!isSanityConfigured() || !client || !isSafeSlug(slug)) return null;
   const doc = await client.fetch(
     `*[_type == "blogPost" && slug.current == $slug && visible != false][0]{ content }`,
     { slug },

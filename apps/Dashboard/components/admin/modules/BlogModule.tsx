@@ -10,9 +10,13 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { CmsNotice } from '@/components/admin/CmsNotice';
+import { compactLocale, isLocalDraftId, postCms } from '@/lib/cms-client';
+import { useUiI18n } from '@/lib/i18n/UiI18nProvider';
 
 export function BlogModule() {
   const { data, addBlogPost, updateBlogPost, deleteBlogPost } = useAdminData();
+  const { t } = useUiI18n();
   const { blogPosts } = data;
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newTag, setNewTag] = useState('');
@@ -22,14 +26,14 @@ export function BlogModule() {
   return (
     <div className="space-y-6">
       <SectionHeader
-        title="Blog Manager"
-        subtitle="Manage articles, featured images, and content"
+        title={t('blog.title')}
+        subtitle={t('blog.subtitle')}
         icon={FileText}
-        action={<AddButton onClick={addBlogPost} label="Add Article" />}
+        action={<AddButton onClick={addBlogPost} label={t('blog.add')} />}
       />
 
       {blogPosts.length === 0 ? (
-        <EmptyState icon={FileText} title="No articles yet" description="Write your first blog post." action={<AddButton onClick={addBlogPost} label="Add Article" />} />
+        <EmptyState icon={FileText} title={t('blog.empty')} description={t('blog.emptyHint')} action={<AddButton onClick={addBlogPost} label={t('blog.add')} />} />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <AnimatePresence>
@@ -90,13 +94,58 @@ export function BlogModule() {
                     published={editingPost.published}
                     onChange={(v) => updateBlogPost(editingPost.id, { published: v })}
                   />
-                  <DeleteButton onClick={() => { deleteBlogPost(editingPost.id); setEditingId(null); }} />
+                  <DeleteButton onClick={async () => {
+                    if (!confirm(t('common.confirmDelete'))) return;
+                    if (!isLocalDraftId(editingPost.id)) {
+                      const result = await postCms({ resource: 'blog', op: 'delete', id: editingPost.id });
+                      if (!result.ok) {
+                        alert(result.error);
+                        return;
+                      }
+                    }
+                    deleteBlogPost(editingPost.id);
+                    setEditingId(null);
+                  }} />
                 </div>
+                <CmsNotice
+                  onSave={async () => {
+                    const result = await postCms(
+                      isLocalDraftId(editingPost.id)
+                        ? {
+                            resource: 'blog',
+                            op: 'create',
+                            data: {
+                              title: compactLocale(editingPost.title),
+                              excerpt: compactLocale(editingPost.excerpt),
+                              content: compactLocale(editingPost.content),
+                              author: editingPost.author,
+                              publishedAt: editingPost.publishedAt,
+                              published: editingPost.published,
+                              slug: editingPost.slug,
+                            },
+                          }
+                        : {
+                            resource: 'blog',
+                            op: 'patch',
+                            id: editingPost.id,
+                            data: {
+                              title: compactLocale(editingPost.title),
+                              excerpt: compactLocale(editingPost.excerpt),
+                              content: compactLocale(editingPost.content),
+                              author: editingPost.author,
+                              publishedAt: editingPost.publishedAt,
+                              published: editingPost.published,
+                            },
+                          },
+                    );
+                    if (!result.ok) throw new Error(result.error);
+                  }}
+                />
 
                 <ImageUpload
                   value={editingPost.featuredImageUrl}
                   onChange={(url) => updateBlogPost(editingPost.id, { featuredImageUrl: url })}
-                  label="Featured Image"
+                  label={t('field.featuredImage')}
                 />
 
                 <div className="flex items-center justify-end">
@@ -106,7 +155,7 @@ export function BlogModule() {
                 <LocalizedInput
                   value={editingPost.title}
                   onChange={(v) => updateBlogPost(editingPost.id, { title: v })}
-                  label="Title"
+                  label={t('field.title')}
                 />
 
                 <div className="grid grid-cols-2 gap-3">
@@ -185,14 +234,14 @@ export function BlogModule() {
                 <LocalizedInput
                   value={editingPost.excerpt}
                   onChange={(v) => updateBlogPost(editingPost.id, { excerpt: v })}
-                  label="Excerpt"
+                  label={t('field.excerpt')}
                   textarea
                 />
 
                 <LocalizedInput
                   value={editingPost.content}
                   onChange={(v) => updateBlogPost(editingPost.id, { content: v })}
-                  label="Content"
+                  label={t('field.content')}
                   textarea
                 />
               </div>

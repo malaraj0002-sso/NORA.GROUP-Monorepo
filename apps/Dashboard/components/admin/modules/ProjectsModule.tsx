@@ -12,11 +12,20 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { CmsNotice } from '@/components/admin/CmsNotice';
+import { compactLocale, isLocalDraftId, postCms, slugFromLocalized } from '@/lib/cms-client';
+import { useUiI18n } from '@/lib/i18n/UiI18nProvider';
 
-const CATEGORIES = ['Residential', 'Commercial', 'Hospitality', 'Retail', 'Custom'];
+const CATEGORIES = ['kitchens', 'bedrooms', 'wardrobes', 'furniture', 'commercial'] as const;
+type ProjectCategory = (typeof CATEGORIES)[number];
+
+function toProjectCategory(value: string): ProjectCategory | undefined {
+  return (CATEGORIES as readonly string[]).includes(value) ? (value as ProjectCategory) : undefined;
+}
 
 export function ProjectsModule() {
-  const { data, addProject, updateProject, deleteProject } = useAdminData();
+  const { data, addProject, updateProject, replaceProjectId, deleteProject } = useAdminData();
+  const { t } = useUiI18n();
   const { projects } = data;
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newWoodType, setNewWoodType] = useState('');
@@ -26,14 +35,18 @@ export function ProjectsModule() {
   return (
     <div className="space-y-6">
       <SectionHeader
-        title="Projects Showcase"
-        subtitle="Manage project portfolio with images, descriptions, and wood types"
+        title={t('projects.title')}
+        subtitle={t('projects.subtitle')}
         icon={FolderKanban}
-        action={<AddButton onClick={addProject} label="Add Project" />}
+        action={
+          <div className="flex items-center gap-2">
+            <AddButton onClick={addProject} label={t('projects.add')} />
+          </div>
+        }
       />
 
       {projects.length === 0 ? (
-        <EmptyState icon={FolderKanban} title="No projects yet" description="Add your first project to showcase your work." action={<AddButton onClick={addProject} label="Add Project" />} />
+        <EmptyState icon={FolderKanban} title={t('projects.empty')} description={t('projects.emptyHint')} action={<AddButton onClick={addProject} label={t('projects.add')} />} />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <AnimatePresence>
@@ -62,7 +75,7 @@ export function ProjectsModule() {
                       {project.featured && (
                         <div className="absolute top-2 left-2">
                           <Badge className="bg-gold/20 text-gold border-gold/30">
-                            <Star className="h-3 w-3 mr-1 fill-current" /> Featured
+                            <Star className="h-3 w-3 me-1 fill-current" /> {t('common.featured')}
                           </Badge>
                         </div>
                       )}
@@ -88,7 +101,7 @@ export function ProjectsModule() {
             <>
               <DialogHeader>
                 <DialogTitle className="text-foreground" style={{ fontFamily: 'var(--font-playfair), serif' }}>
-                  Edit Project
+                  {t('common.edit')}
                 </DialogTitle>
               </DialogHeader>
 
@@ -105,19 +118,70 @@ export function ProjectsModule() {
                         onCheckedChange={(v) => updateProject(editingProject.id, { featured: v })}
                       />
                       <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                        <Star className="h-3 w-3" /> Featured
+                        <Star className="h-3 w-3" /> {t('common.featured')}
                       </span>
                     </div>
                   </div>
-                  <DeleteButton onClick={() => { deleteProject(editingProject.id); setEditingId(null); }} />
+                  <DeleteButton onClick={async () => {
+                    if (!confirm(t('common.confirmDelete'))) return;
+                    if (!isLocalDraftId(editingProject.id)) {
+                      const result = await postCms({ resource: 'project', op: 'delete', id: editingProject.id });
+                      if (!result.ok) {
+                        alert(result.error);
+                        return;
+                      }
+                    }
+                    deleteProject(editingProject.id);
+                    setEditingId(null);
+                  }} />
                 </div>
+                <CmsNotice
+                  onSave={async () => {
+                    const assetIds = [
+                      editingProject.imageAssetId,
+                      ...(editingProject.galleryAssetIds || []),
+                    ].filter((id): id is string => Boolean(id && id.startsWith('image-')));
+                    const uniqueAssets = [...new Set(assetIds)];
+                    const slug = slugFromLocalized(editingProject.title, `project-${Date.now()}`);
+                    const payload = {
+                      title: compactLocale(editingProject.title),
+                      description: compactLocale(editingProject.description),
+                      category: toProjectCategory(editingProject.category) ?? 'furniture',
+                      woodTypes: editingProject.woodTypes,
+                      published: editingProject.published,
+                      assetIds: uniqueAssets,
+                      slug,
+                    };
+                    const result = await postCms(
+                      isLocalDraftId(editingProject.id)
+                        ? { resource: 'project', op: 'create', data: payload }
+                        : { resource: 'project', op: 'patch', id: editingProject.id, data: payload },
+                    );
+                    if (!result.ok) throw new Error(result.error);
+                    if (isLocalDraftId(editingProject.id) && result.id) {
+                      replaceProjectId(editingProject.id, result.id);
+                      setEditingId(result.id);
+                    }
+                  }}
+                />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">
                     <ImageUpload
                       value={editingProject.imageUrl}
-                      onChange={(url) => updateProject(editingProject.id, { imageUrl: url })}
-                      label="Main Image"
+                      onChange={(url, assetId) =>
+                        updateProject(editingProject.id, {
+                          imageUrl: url,
+                          imageAssetId: assetId,
+                          galleryImages: url
+                            ? [url, ...editingProject.galleryImages.filter((img) => img !== editingProject.imageUrl && img !== url)]
+                            : editingProject.galleryImages.filter((img) => img !== editingProject.imageUrl),
+                          galleryAssetIds: assetId
+                            ? [assetId, ...(editingProject.galleryAssetIds || []).filter((id) => id !== editingProject.imageAssetId && id !== assetId)]
+                            : (editingProject.galleryAssetIds || []).filter((id) => id !== editingProject.imageAssetId),
+                        })
+                      }
+                      label={t('field.mainImage')}
                     />
                   </div>
                 </div>
@@ -129,12 +193,12 @@ export function ProjectsModule() {
                 <LocalizedInput
                   value={editingProject.title}
                   onChange={(v) => updateProject(editingProject.id, { title: v })}
-                  label="Project Title"
+                  label={t('field.projectTitle')}
                 />
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <FieldLabel>Category</FieldLabel>
+                    <FieldLabel>{t('field.category')}</FieldLabel>
                     <Select
                       value={editingProject.category}
                       onValueChange={(v) => updateProject(editingProject.id, { category: v })}
@@ -163,7 +227,7 @@ export function ProjectsModule() {
                 <LocalizedInput
                   value={editingProject.description}
                   onChange={(v) => updateProject(editingProject.id, { description: v })}
-                  label="Description"
+                  label={t('field.description')}
                   textarea
                 />
 

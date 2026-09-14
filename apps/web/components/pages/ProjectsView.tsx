@@ -15,7 +15,7 @@ export function ProjectsView({ locale, content }: { locale: AppLocale; content: 
         subtitle={t(content.home.projectsSubtitle, locale)}
         image={visible[0]?.images[0]}
       />
-      <section className="section-padding bg-warm-50">
+      <section className="section-padding bg-background">
         <div className="container-luxury">
           <ProjectsGrid
             labels={content.categoryLabels[locale]}

@@ -1,11 +1,12 @@
 'use client';
 
-import { Upload, X, GripVertical, ArrowUp, ArrowDown, Plus, Trash2, Star } from 'lucide-react';
+import { Upload, X, ArrowUp, ArrowDown, Plus, Trash2, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
+import { useUiI18n } from '@/lib/i18n/UiI18nProvider';
 
 export function GlassCard({
   children,
@@ -73,11 +74,12 @@ export function ImageUpload({
   aspect = 'aspect-video',
 }: {
   value: string;
-  onChange: (url: string) => void;
+  onChange: (url: string, assetId?: string) => void;
   label?: string;
   className?: string;
   aspect?: string;
 }) {
+  const { t } = useUiI18n();
   return (
     <div className={className}>
       {label && (
@@ -108,7 +110,7 @@ export function ImageUpload({
                   variant="secondary"
                   onClick={() => onChange('')}
                 >
-                  <X className="h-4 w-4 mr-1" /> Remove
+                  <X className="h-4 w-4 me-1" /> {t('common.remove')}
                 </Button>
               </div>
             </>
@@ -116,14 +118,31 @@ export function ImageUpload({
             <label className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer gap-2 text-muted-foreground hover:text-gold transition-colors">
               <Upload className="h-8 w-8" />
 
-              <span className="text-xs">Upload image</span>
+              <span className="text-xs">{t('common.upload')}</span>
 
               <input
-                type="text"
-                placeholder="Paste image URL..."
-                className="absolute bottom-2 w-[90%] rounded-md border border-input bg-background/80 px-2 py-1 text-xs text-center text-foreground"
-                onClick={(e) => e.stopPropagation()}
-                onChange={(e) => onChange(e.target.value)}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="absolute inset-0 opacity-0 cursor-pointer"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  e.target.value = '';
+                  if (!file) return;
+                  const body = new FormData();
+                  body.append('file', file);
+                  const response = await fetch('/api/media', { method: 'POST', body });
+                  const text = await response.text();
+                  let payload: { url?: string; assetId?: string; error?: string } = {};
+                  if (text.trim()) {
+                    try {
+                      payload = JSON.parse(text) as { url?: string; assetId?: string; error?: string };
+                    } catch {
+                      return;
+                    }
+                  }
+                  if (!response.ok || !payload.url) return;
+                  onChange(payload.url, payload.assetId);
+                }}
               />
             </label>
           )}
@@ -136,12 +155,13 @@ export function ImageUpload({
 export function PublishToggle({
   published,
   onChange,
-  label = 'Published',
+  label,
 }: {
   published: boolean;
   onChange: (v: boolean) => void;
   label?: string;
 }) {
+  const { t } = useUiI18n();
   return (
     <div className="flex items-center gap-2">
       <Switch checked={published} onCheckedChange={onChange} />
@@ -151,31 +171,33 @@ export function PublishToggle({
           published ? 'text-gold' : 'text-muted-foreground'
         )}
       >
-        {label}
+        {label ?? t('common.published')}
       </span>
     </div>
   );
 }
 
 export function StatusBadge({ published }: { published: boolean }) {
+  const { t } = useUiI18n();
   return published ? (
     <Badge className="bg-gold/15 text-gold border-gold/30 hover:bg-gold/20">
-      Published
+      {t('common.published')}
     </Badge>
   ) : (
     <Badge
       variant="outline"
       className="text-muted-foreground border-border"
     >
-      Draft
+      {t('common.draft')}
     </Badge>
   );
 }
 
 export function FeaturedBadge({ featured }: { featured: boolean }) {
+  const { t } = useUiI18n();
   return featured ? (
     <Badge className="bg-chart-2/15 text-chart-2 border-chart-2/30 hover:bg-chart-2/20">
-      <Star className="h-3 w-3 mr-1 fill-current" /> Featured
+      <Star className="h-3 w-3 me-1 fill-current" /> {t('common.featured')}
     </Badge>
   ) : null;
 }
@@ -193,7 +215,7 @@ export function AddButton({
       variant="outline"
       className="border-gold/20 text-gold hover:bg-gold/10 hover:text-gold hover:border-gold/40"
     >
-      <Plus className="h-4 w-4 mr-2" /> {label}
+      <Plus className="h-4 w-4 me-2" /> {label}
     </Button>
   );
 }
@@ -205,11 +227,13 @@ export function DeleteButton({
   onClick: () => void;
   className?: string;
 }) {
+  const { t } = useUiI18n();
   return (
     <Button
       onClick={onClick}
       size="icon"
       variant="ghost"
+      aria-label={t('aria.delete')}
       className={cn(
         'text-destructive/70 hover:text-destructive hover:bg-destructive/10 h-8 w-8',
         className
@@ -229,17 +253,22 @@ export function ReorderButtons({
   onDown: () => void;
   className?: string;
 }) {
+  const { t } = useUiI18n();
   return (
     <div className={cn('flex flex-col gap-0.5', className)}>
       <button
+        type="button"
         onClick={onUp}
+        aria-label={t('aria.moveUp')}
         className="text-muted-foreground hover:text-gold transition-colors"
       >
         <ArrowUp className="h-3 w-3" />
       </button>
 
       <button
+        type="button"
         onClick={onDown}
+        aria-label={t('aria.moveDown')}
         className="text-muted-foreground hover:text-gold transition-colors"
       >
         <ArrowDown className="h-3 w-3" />
@@ -315,11 +344,14 @@ export function StarRating({
   value: number;
   onChange?: (v: number) => void;
 }) {
+  const { t } = useUiI18n();
   return (
     <div className="flex items-center gap-0.5">
       {[1, 2, 3, 4, 5].map((star) => (
         <button
           key={star}
+          type="button"
+          aria-label={`${t('aria.rating')} ${star}`}
           onClick={() => onChange?.(star)}
           disabled={!onChange}
           className={cn(

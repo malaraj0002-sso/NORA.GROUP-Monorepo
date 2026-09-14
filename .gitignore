@@ -18,6 +18,7 @@ coverage/
 
 # Local development
 *.local
+.data/
 
 # Logs
 *.log

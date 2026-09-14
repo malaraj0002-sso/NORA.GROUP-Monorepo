@@ -30,6 +30,28 @@
     --chart-4: 30 80% 55%;
     --chart-5: 340 75% 55%;
   }
+
+  .light {
+    --background: 40 33% 97%;
+    --foreground: 240 6% 10%;
+    --card: 40 30% 99%;
+    --card-foreground: 240 6% 10%;
+    --popover: 40 30% 99%;
+    --popover-foreground: 240 6% 10%;
+    --primary: 46 74% 42%;
+    --primary-foreground: 40 33% 97%;
+    --secondary: 40 15% 92%;
+    --secondary-foreground: 240 6% 10%;
+    --muted: 40 12% 92%;
+    --muted-foreground: 240 5% 38%;
+    --accent: 46 74% 42%;
+    --accent-foreground: 40 33% 97%;
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 40 33% 97%;
+    --border: 40 12% 84%;
+    --input: 40 12% 84%;
+    --ring: 46 74% 42%;
+  }
 }
 
 @layer base {
@@ -66,6 +88,14 @@
   }
   .gold-glow {
     box-shadow: 0 0 20px rgba(212, 175, 55, 0.15);
+  }
+  .light .glass {
+    background: rgba(26, 28, 32, 0.03);
+    border: 1px solid rgba(26, 28, 32, 0.08);
+  }
+  .light .glass-strong {
+    background: rgba(255, 255, 255, 0.86);
+    border: 1px solid rgba(26, 28, 32, 0.08);
   }
   .luxury-scroll::-webkit-scrollbar {
     width: 6px;

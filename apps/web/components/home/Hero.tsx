@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { MessageCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from '@/i18n/navigation';
@@ -33,7 +33,18 @@ export function Hero({
   whatsappLabel: string;
   viewWorkLabel: string;
 }) {
-  const reduceMotion = useReducedMotion();
+  // Do not call framer-motion's useReducedMotion() during render: it reads
+  // matchMedia on the client while SSR keeps `null`, which can change motion
+  // props on the first client paint and desync hydration further down the page.
+  const [reduceMotion, setReduceMotion] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const sync = () => setReduceMotion(media.matches);
+    sync();
+    media.addEventListener('change', sync);
+    return () => media.removeEventListener('change', sync);
+  }, []);
 
   const rawSlides = slides && slides.length > 0 ? slides : FALLBACK_SLIDES;
   const activeSlides = rawSlides.map((s) => mediaSrc(s)).filter(Boolean);

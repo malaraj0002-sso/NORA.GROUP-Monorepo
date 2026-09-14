@@ -24,7 +24,7 @@ export function BrandLockup({
       ? 'text-warm-50'
       : variant === 'dark'
         ? 'text-warm-50'
-        : 'text-charcoal-900';
+        : 'text-foreground';
 
   return (
     <Link

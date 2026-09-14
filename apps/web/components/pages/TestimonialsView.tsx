@@ -16,11 +16,11 @@ export function TestimonialsView({ locale, content }: { locale: AppLocale; conte
         subtitle={t(content.home.testimonialsSubtitle, locale)}
       />
 
-      <section className="section-padding bg-warm-50/60 relative overflow-hidden">
+      <section className="section-padding bg-background relative overflow-hidden">
         <div className="container-luxury grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {items.map((item, i) => (
             <Reveal key={item.id} delay={i * 40}>
-              <div className="group relative flex flex-col justify-between h-full rounded-2xl border border-gold-200/60 bg-white p-7 shadow-sm transition-all duration-500 hover:-translate-y-1 hover:border-gold-400 hover:shadow-xl hover:shadow-gold-500/10">
+              <div className="group relative flex flex-col justify-between h-full rounded-2xl border border-gold-200/60 bg-card p-7 shadow-sm transition-all duration-500 hover:-translate-y-1 hover:border-gold-400 hover:shadow-xl hover:shadow-gold-500/10">
                 
                 <div>
                   {/* النجوم الذهبية وعلامة الاقتباس */}
@@ -34,14 +34,14 @@ export function TestimonialsView({ locale, content }: { locale: AppLocale; conte
                   </div>
 
                   {/* نص التقييم */}
-                  <p className="text-sm sm:text-base leading-relaxed text-charcoal-700 italic font-medium">
-                    "{t(item.review, locale)}"
+                  <p className="text-sm sm:text-base leading-relaxed text-foreground italic font-medium">
+                    &ldquo;{t(item.review, locale)}&rdquo;
                   </p>
                 </div>
 
                 {/* معلومات العميل والمشروع */}
                 <div className="mt-6 pt-4 border-t border-gold-100/80">
-                  <p className="font-bold text-charcoal-900 transition-colors duration-300 group-hover:text-gold-600">
+                  <p className="font-bold text-foreground transition-colors duration-300 group-hover:text-gold-600">
                     {item.name}
                   </p>
                   <p className="text-xs font-semibold text-gold-600/90 mt-0.5">

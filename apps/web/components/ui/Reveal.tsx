@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react';
 
 export function Reveal({
   children,
@@ -12,15 +12,24 @@ export function Reveal({
   delay?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+
+    const show = () => {
+      el.classList.add('is-visible');
+    };
+
+    if (typeof IntersectionObserver === 'undefined') {
+      show();
+      return;
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setVisible(true);
+          show();
           observer.disconnect();
         }
       },
@@ -30,12 +39,11 @@ export function Reveal({
     return () => observer.disconnect();
   }, []);
 
+  const style: CSSProperties = { transitionDelay: `${delay}ms` };
+  const classes = ['reveal', className].filter(Boolean).join(' ');
+
   return (
-    <div
-      ref={ref}
-      className={`reveal ${visible ? 'is-visible' : ''} ${className}`}
-      style={{ transitionDelay: `${delay}ms` }}
-    >
+    <div ref={ref} className={classes} style={style}>
       {children}
     </div>
   );

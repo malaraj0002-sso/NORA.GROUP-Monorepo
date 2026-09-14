@@ -3,16 +3,30 @@
 @tailwind utilities;
 
 @layer base {
-  * {
-    @apply border-charcoal-200;
+  :root {
+    --ng-surface: #fdfbf7;
+    --ng-surface-raised: #ffffff;
+    --ng-ink: #1a1c20;
+    --ng-ink-muted: #585e6b;
+    --ng-border: #e1e3e6;
+  }
+
+  html.dark {
+    --ng-surface: #0f1012;
+    --ng-surface-raised: #1a1c20;
+    --ng-ink: #f6f1e8;
+    --ng-ink-muted: #c3c6cc;
+    --ng-border: #393d46;
+    color-scheme: dark;
   }
 
   html {
     scroll-behavior: smooth;
+    color-scheme: light;
   }
 
   body {
-    @apply bg-amber-50 text-charcoal-900 font-sans antialiased;
+    @apply bg-background text-foreground font-sans antialiased;
     text-rendering: optimizeLegibility;
   }
 
@@ -48,7 +62,7 @@
   h4,
   h5,
   h6 {
-    @apply font-display font-bold tracking-tight;
+    @apply font-display font-bold tracking-tight text-foreground;
   }
 
   ::selection {
@@ -77,6 +91,14 @@
     @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#25D366] px-6 py-3 font-semibold text-white transition-all duration-300 hover:bg-[#1da851] hover:shadow-lg active:scale-[0.98];
   }
 
+  html.dark .btn-primary {
+    @apply bg-warm-50 text-charcoal-900 hover:bg-warm-100;
+  }
+
+  html.dark .btn-secondary {
+    @apply border-warm-50 text-warm-50 hover:bg-warm-50 hover:text-charcoal-900;
+  }
+
   .section-padding {
     @apply py-16 sm:py-20 lg:py-28;
   }
@@ -86,8 +108,8 @@
   }
 
   .card-luxury {
-    background-color: #ffffff;
-    border: 1px solid #d1d5db;
+    background-color: var(--ng-surface-raised);
+    border: 1px solid var(--ng-border);
     border-radius: 1rem;
     overflow: hidden;
   }

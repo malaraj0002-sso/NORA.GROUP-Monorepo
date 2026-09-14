@@ -32,7 +32,7 @@ export function ServicesView({ locale, content }: { locale: AppLocale; content: 
         image={services[0]?.image}
       />
 
-      <section className="section-padding bg-warm-50">
+      <section className="section-padding bg-background">
         <div className="container-luxury grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {services.map((s, i) => {
             const Icon = serviceIcons[i % serviceIcons.length];
@@ -42,7 +42,7 @@ export function ServicesView({ locale, content }: { locale: AppLocale; content: 
                 <Link 
                   href={`/services/${s.slug}`} 
                   prefetch={true}
-                  className="group relative flex flex-col h-full overflow-hidden rounded-2xl border border-gold-200/50 bg-white shadow-sm transition-all duration-500 hover:-translate-y-2 hover:border-gold-400 hover:shadow-2xl hover:shadow-gold-500/15"
+                  className="group relative flex flex-col h-full overflow-hidden rounded-2xl border border-gold-200/50 bg-card shadow-sm transition-all duration-500 hover:-translate-y-2 hover:border-gold-400 hover:shadow-2xl hover:shadow-gold-500/15"
                 >
                   {/* حاوية الصورة مع التدرج والأيقونة */}
                   <div className="relative aspect-[4/3] w-full overflow-hidden bg-charcoal-900">
@@ -67,17 +67,17 @@ export function ServicesView({ locale, content }: { locale: AppLocale; content: 
                   <div className="flex flex-col justify-between flex-1 p-6">
                     <div>
                       <div className="flex items-center justify-between gap-2">
-                        <h2 className="text-xl font-bold text-charcoal-900 transition-colors duration-300 group-hover:text-gold-600">
+                        <h2 className="text-xl font-bold text-foreground transition-colors duration-300 group-hover:text-gold-600">
                           {t(s.title, locale)}
                         </h2>
                         
                         {/* سهم تفاعلي يظهر عند تحريك الماوس */}
-                        <div className="flex h-8 w-8 -translate-x-2 items-center justify-center rounded-full bg-gold-50 text-gold-600 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100 rtl:translate-x-2 rtl:group-hover:translate-x-0">
+                        <div className="flex h-8 w-8 -translate-x-2 items-center justify-center rounded-full bg-gold-400/10 text-gold-600 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100 rtl:translate-x-2 rtl:group-hover:translate-x-0">
                           <ArrowLeft className="h-4 w-4 rtl:rotate-0 rotate-180" />
                         </div>
                       </div>
 
-                      <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-charcoal-600">
+                      <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted">
                         {t(s.description, locale)}
                       </p>
                     </div>

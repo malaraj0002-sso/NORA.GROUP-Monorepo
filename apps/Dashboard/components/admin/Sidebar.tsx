@@ -3,32 +3,42 @@
 import { motion } from 'framer-motion';
 import {
   LayoutDashboard, Settings, Image, Info, FolderKanban, Layers,
-  Wrench, MessageSquare, HelpCircle, FileText, Hammer, ChevronLeft,
+  Wrench, MessageSquare, FileText, Hammer, ChevronLeft, Home, ListOrdered, Users, Languages,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAdminData } from '@/lib/AdminDataContext';
+import { useUiI18n } from '@/lib/i18n/UiI18nProvider';
+import type { MessageKey } from '@/lib/i18n/messages';
 
 export type AdminModule =
   | 'overview'
   | 'site'
   | 'hero'
+  | 'homepage'
   | 'about'
+  | 'howWeWork'
   | 'projects'
   | 'materials'
   | 'services'
   | 'testimonials'
-  | 'blog';
+  | 'blog'
+  | 'users'
+  | 'translation';
 
-const NAV_ITEMS: { id: AdminModule; label: string; labelAr: string; icon: React.ComponentType<{ className?: string }> }[] = [
-  { id: 'overview', label: 'Overview', labelAr: 'نظرة عامة', icon: LayoutDashboard },
-  { id: 'site', label: 'Site & Navigation', labelAr: 'الموقع والتنقل', icon: Settings },
-  { id: 'hero', label: 'Hero & Slider', labelAr: 'الواجهة والشرائح', icon: Image },
-  { id: 'about', label: 'About Us', labelAr: 'من نحن', icon: Info },
-  { id: 'projects', label: 'Projects', labelAr: 'المشاريع', icon: FolderKanban },
-  { id: 'materials', label: 'Materials & Finishes', labelAr: 'المواد والتشطيبات', icon: Layers },
-  { id: 'services', label: 'Services & Craft', labelAr: 'الخدمات والحرف', icon: Wrench },
-  { id: 'testimonials', label: 'Testimonials & FAQ', labelAr: 'الآراء والأسئلة', icon: MessageSquare },
-  { id: 'blog', label: 'Blog Manager', labelAr: 'المدونة', icon: FileText },
+const NAV_ITEMS: { id: AdminModule; labelKey: MessageKey; icon: React.ComponentType<{ className?: string }> }[] = [
+  { id: 'overview', labelKey: 'nav.overview', icon: LayoutDashboard },
+  { id: 'homepage', labelKey: 'nav.homepage', icon: Home },
+  { id: 'site', labelKey: 'nav.site', icon: Settings },
+  { id: 'hero', labelKey: 'nav.hero', icon: Image },
+  { id: 'about', labelKey: 'nav.about', icon: Info },
+  { id: 'howWeWork', labelKey: 'nav.howWeWork', icon: ListOrdered },
+  { id: 'projects', labelKey: 'nav.projects', icon: FolderKanban },
+  { id: 'materials', labelKey: 'nav.materials', icon: Layers },
+  { id: 'services', labelKey: 'nav.services', icon: Wrench },
+  { id: 'testimonials', labelKey: 'nav.testimonials', icon: MessageSquare },
+  { id: 'blog', labelKey: 'nav.blog', icon: FileText },
+  { id: 'translation', labelKey: 'nav.translation', icon: Languages },
+  { id: 'users', labelKey: 'nav.users', icon: Users },
 ];
 
 export function Sidebar({
@@ -43,11 +53,12 @@ export function Sidebar({
   onToggleCollapse: () => void;
 }) {
   const { data } = useAdminData();
+  const { t } = useUiI18n();
 
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 z-40 h-screen glass-strong border-r border-border/50 transition-all duration-300',
+        'fixed start-0 top-0 z-40 h-screen glass-strong border-e border-border/50 transition-all duration-300',
         collapsed ? 'w-20' : 'w-64'
       )}
     >
@@ -61,7 +72,7 @@ export function Sidebar({
               <h1 className="text-sm font-bold text-foreground whitespace-nowrap" style={{ fontFamily: 'var(--font-playfair), serif' }}>
                 {data.siteSettings.siteName}
               </h1>
-              <p className="text-[10px] text-gold/70 whitespace-nowrap">Admin Dashboard</p>
+              <p className="text-[10px] text-gold/70 whitespace-nowrap">{t('chrome.adminSubtitle')}</p>
             </div>
           )}
         </div>
@@ -73,9 +84,10 @@ export function Sidebar({
             return (
               <button
                 key={item.id}
+                type="button"
                 onClick={() => onSelect(item.id)}
                 className={cn(
-                  'relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all w-full',
+                  'relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all w-full text-start',
                   isActive
                     ? 'text-gold'
                     : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
@@ -89,7 +101,7 @@ export function Sidebar({
                   />
                 )}
                 <Icon className="h-5 w-5 shrink-0 relative z-10" />
-                {!collapsed && <span className="relative z-10 whitespace-nowrap">{item.label}</span>}
+                {!collapsed && <span className="relative z-10 whitespace-nowrap">{t(item.labelKey)}</span>}
               </button>
             );
           })}
@@ -97,11 +109,17 @@ export function Sidebar({
 
         <div className="border-t border-border/50 p-3">
           <button
+            type="button"
             onClick={onToggleCollapse}
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-xs text-muted-foreground hover:text-gold transition-colors w-full"
+            className="flex items-center gap-3 rounded-lg px-3 py-2 text-xs text-muted-foreground hover:text-gold transition-colors w-full text-start"
           >
-            <ChevronLeft className={cn('h-4 w-4 shrink-0 transition-transform', collapsed && 'rotate-180')} />
-            {!collapsed && <span>Collapse</span>}
+            <ChevronLeft
+              className={cn(
+                'h-4 w-4 shrink-0 transition-transform',
+                collapsed ? 'rotate-180 rtl:rotate-0' : 'rtl:rotate-180'
+              )}
+            />
+            {!collapsed && <span>{t('nav.collapse')}</span>}
           </button>
         </div>
       </div>

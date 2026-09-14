@@ -17,11 +17,11 @@ export function HowWeWorkView({ locale, content }: { locale: AppLocale; content:
         image={page.image}
       />
 
-      <section className="section-padding bg-warm-50/60">
+      <section className="section-padding bg-background">
         <div className="container-luxury grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {page.steps.map((step, i) => (
             <Reveal key={step.number} delay={i * 40}>
-              <div className="group relative flex flex-col justify-between h-full overflow-hidden rounded-2xl border border-gold-200/50 bg-white p-6 shadow-sm transition-all duration-500 hover:-translate-y-2 hover:border-gold-400 hover:shadow-2xl hover:shadow-gold-500/15">
+              <div className="group relative flex flex-col justify-between h-full overflow-hidden rounded-2xl border border-gold-200/50 bg-card p-6 shadow-sm transition-all duration-500 hover:-translate-y-2 hover:border-gold-400 hover:shadow-2xl hover:shadow-gold-500/15">
                 
                 {/* رقم الخطوة الخلفي العملاق الشفاف */}
                 <span className="absolute -left-2 -top-2 text-7xl font-extrabold text-gold-500/10 transition-colors duration-500 group-hover:text-gold-500/20 select-none">
@@ -31,18 +31,18 @@ export function HowWeWorkView({ locale, content }: { locale: AppLocale; content:
                 <div className="relative z-10">
                   {/* شارة الخطوة مع الأيقونة */}
                   <div className="flex items-center justify-between mb-4">
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-gold-200/80 bg-gold-50/80 px-3 py-1 text-xs font-bold text-gold-600 backdrop-blur-sm">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-gold-200/80 bg-gold-400/10 px-3 py-1 text-xs font-bold text-gold-600 backdrop-blur-sm">
                       <Sparkles className="h-3 w-3 text-gold-500" />
                       <span>{step.number}</span>
                     </span>
                   </div>
 
                   {/* عنوان الخطوة والوصف */}
-                  <h3 className="text-xl font-bold text-charcoal-900 transition-colors duration-300 group-hover:text-gold-600">
+                  <h3 className="text-xl font-bold text-foreground transition-colors duration-300 group-hover:text-gold-600">
                     {t(step.title, locale)}
                   </h3>
 
-                  <p className="mt-3 text-sm leading-relaxed text-charcoal-600">
+                  <p className="mt-3 text-sm leading-relaxed text-muted">
                     {t(step.description, locale)}
                   </p>
                 </div>

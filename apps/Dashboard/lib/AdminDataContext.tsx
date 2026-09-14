@@ -1,7 +1,6 @@
 'use client';
 
 import React, { createContext, useContext, useState, useCallback } from 'react';
-import { mockData } from './mock-data';
 import type {
   AdminData,
   SiteSettings,
@@ -19,10 +18,15 @@ import type {
   FAQItem,
   BlogPost,
   LocalizedText,
+  HomePageContent,
+  HowWeWorkStep,
 } from './types';
+
+export type ContentSource = 'sanity' | 'mock';
 
 type AdminContextType = {
   data: AdminData;
+  source: ContentSource;
   updateSiteSettings: (partial: Partial<SiteSettings>) => void;
   addNavItem: () => void;
   updateNavItem: (id: string, partial: Partial<NavItem>) => void;
@@ -42,8 +46,11 @@ type AdminContextType = {
   addAboutFeature: () => void;
   updateAboutFeature: (id: string, partial: Partial<AboutFeature>) => void;
   deleteAboutFeature: (id: string) => void;
+  updateHomePage: (partial: Partial<HomePageContent>) => void;
+  updateHowWeWorkStep: (id: string, partial: Partial<HowWeWorkStep>) => void;
   addProject: () => void;
   updateProject: (id: string, partial: Partial<Project>) => void;
+  replaceProjectId: (oldId: string, newId: string) => void;
   deleteProject: (id: string) => void;
   addMaterial: () => void;
   updateMaterial: (id: string, partial: Partial<Material>) => void;
@@ -72,8 +79,16 @@ const genId = (prefix: string) => `${prefix}-${Date.now()}-${Math.random().toStr
 
 const emptyLocalized: LocalizedText = { ar: '', he: '', en: '' };
 
-export function AdminDataProvider({ children }: { children: React.ReactNode }) {
-  const [data, setData] = useState<AdminData>(mockData);
+export function AdminDataProvider({
+  children,
+  initialData,
+  source,
+}: {
+  children: React.ReactNode;
+  initialData: AdminData;
+  source: ContentSource;
+}) {
+  const [data, setData] = useState<AdminData>(initialData);
 
   const updateSiteSettings = useCallback((partial: Partial<SiteSettings>) => {
     setData((d) => ({ ...d, siteSettings: { ...d.siteSettings, ...partial } }));
@@ -268,20 +283,32 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     }));
   }, []);
 
+  const updateHomePage = useCallback((partial: Partial<HomePageContent>) => {
+    setData((d) => ({ ...d, homePage: { ...d.homePage, ...partial } }));
+  }, []);
+
+  const updateHowWeWorkStep = useCallback((id: string, partial: Partial<HowWeWorkStep>) => {
+    setData((d) => ({
+      ...d,
+      howWeWorkSteps: d.howWeWorkSteps.map((s) => (s.id === id ? { ...s, ...partial } : s)),
+    }));
+  }, []);
+
   const addProject = useCallback(() => {
     setData((d) => ({
       ...d,
       projects: [...d.projects, {
         id: genId('proj'),
         title: { ...emptyLocalized },
-        category: 'Residential',
+        category: 'kitchens',
         imageUrl: '',
         galleryImages: [],
         description: { ...emptyLocalized },
         woodTypes: [],
-        published: false,
+        published: true,
         featured: false,
         completedDate: new Date().toISOString().split('T')[0],
+        galleryAssetIds: [],
       }],
     }));
   }, []);
@@ -290,6 +317,13 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     setData((d) => ({
       ...d,
       projects: d.projects.map((p) => (p.id === id ? { ...p, ...partial } : p)),
+    }));
+  }, []);
+
+  const replaceProjectId = useCallback((oldId: string, newId: string) => {
+    setData((d) => ({
+      ...d,
+      projects: d.projects.map((p) => (p.id === oldId ? { ...p, id: newId } : p)),
     }));
   }, []);
 
@@ -303,6 +337,7 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
       materials: [...d.materials, {
         id: genId('mat'),
         name: '',
+        nameLocales: { ...emptyLocalized },
         type: 'Hardwood',
         textureImageUrl: '',
         description: { ...emptyLocalized },
@@ -493,12 +528,14 @@ export function AdminDataProvider({ children }: { children: React.ReactNode }) {
     addFooterLink, updateFooterLink, deleteFooterLink,
     addHeroSlide, updateHeroSlide, deleteHeroSlide, reorderHeroSlides,
     updateAboutSettings, addAboutFeature, updateAboutFeature, deleteAboutFeature,
-    addProject, updateProject, deleteProject,
+    updateHomePage, updateHowWeWorkStep,
+    addProject, updateProject, replaceProjectId, deleteProject,
     addMaterial, updateMaterial, deleteMaterial,
     addService, updateService, deleteService, addServiceStep, updateServiceStep, deleteServiceStep,
     addTestimonial, updateTestimonial, deleteTestimonial,
     addFAQ, updateFAQ, deleteFAQ, reorderFAQs,
     addBlogPost, updateBlogPost, deleteBlogPost,
+    source,
   };
 
   return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;

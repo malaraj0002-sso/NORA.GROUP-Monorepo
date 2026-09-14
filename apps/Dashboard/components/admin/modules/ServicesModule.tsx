@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Wrench, Plus, Trash2, GripVertical, Armchair, Home, DoorOpen, Hammer, PaintRoller, Ruler } from 'lucide-react';
+import { Wrench, Plus, Trash2, GripVertical, Armchair, Home, Hammer, PaintRoller, Ruler } from 'lucide-react';
 import { useAdminData } from '@/lib/AdminDataContext';
 import { GlassCard, SectionHeader, ImageUpload, FieldLabel, AddButton, DeleteButton, ItemRow, PublishToggle, StatusBadge, EmptyState } from '../shared';
 import { LocalizedInput, LanguageTabs } from '../LanguageTabs';
@@ -10,11 +10,13 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { CmsNotice } from '@/components/admin/CmsNotice';
+import { compactLocale, isLocalDraftId, postCms } from '@/lib/cms-client';
+import { useUiI18n } from '@/lib/i18n/UiI18nProvider';
 
 const ICON_OPTIONS = [
   { value: 'armchair', label: 'Armchair', icon: Armchair },
   { value: 'home', label: 'Home', icon: Home },
-  { value: 'door-open', label: 'Door', icon: DoorOpen },
   { value: 'hammer', label: 'Hammer', icon: Hammer },
   { value: 'paint-roller', label: 'Paint Roller', icon: PaintRoller },
   { value: 'ruler', label: 'Ruler', icon: Ruler },
@@ -30,6 +32,7 @@ export function ServicesModule() {
     addServiceStep, updateServiceStep, deleteServiceStep,
   } = useAdminData();
   const { services } = data;
+  const { t } = useUiI18n();
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const editingService = services.find((s) => s.id === editingId);
@@ -37,14 +40,14 @@ export function ServicesModule() {
   return (
     <div className="space-y-6">
       <SectionHeader
-        title="Services & Craftsmanship"
-        subtitle="Manage service list, icons, images, and process steps"
+        title={t('services.title')}
+        subtitle={t('services.subtitle')}
         icon={Wrench}
-        action={<AddButton onClick={addService} label="Add Service" />}
+        action={<AddButton onClick={addService} label={t('services.add')} />}
       />
 
       {services.length === 0 ? (
-        <EmptyState icon={Wrench} title="No services yet" description="Add your first service to showcase your craftsmanship." action={<AddButton onClick={addService} label="Add Service" />} />
+        <EmptyState icon={Wrench} title={t('services.empty')} description={t('services.emptyHint')} action={<AddButton onClick={addService} label={t('services.add')} />} />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <AnimatePresence>
@@ -106,14 +109,43 @@ export function ServicesModule() {
                     published={editingService.published}
                     onChange={(v) => updateService(editingService.id, { published: v })}
                   />
-                  <DeleteButton onClick={() => { deleteService(editingService.id); setEditingId(null); }} />
+                  <DeleteButton onClick={async () => {
+                    if (!confirm(t('common.confirmDelete'))) return;
+                    if (!isLocalDraftId(editingService.id)) {
+                      const result = await postCms({ resource: 'service', op: 'delete', id: editingService.id });
+                      if (!result.ok) {
+                        alert(result.error);
+                        return;
+                      }
+                    }
+                    deleteService(editingService.id);
+                    setEditingId(null);
+                  }} />
                 </div>
+                <CmsNotice
+                  onSave={async () => {
+                    if (isLocalDraftId(editingService.id)) {
+                      throw new Error('Create a service only with an allowed website slug via Studio or a future create form. Local drafts are not published.');
+                    }
+                    const result = await postCms({
+                      resource: 'service',
+                      op: 'patch',
+                      id: editingService.id,
+                      data: {
+                        title: compactLocale(editingService.title),
+                        description: compactLocale(editingService.description),
+                        published: editingService.published,
+                      },
+                    });
+                    if (!result.ok) throw new Error(result.error);
+                  }}
+                />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <ImageUpload
                     value={editingService.imageUrl}
                     onChange={(url) => updateService(editingService.id, { imageUrl: url })}
-                    label="Service Image"
+                    label={t('field.serviceImage')}
                   />
                   <div>
                     <FieldLabel>Icon</FieldLabel>
@@ -147,13 +179,13 @@ export function ServicesModule() {
                 <LocalizedInput
                   value={editingService.title}
                   onChange={(v) => updateService(editingService.id, { title: v })}
-                  label="Service Title"
+                  label={t('field.serviceTitle')}
                 />
 
                 <LocalizedInput
                   value={editingService.description}
                   onChange={(v) => updateService(editingService.id, { description: v })}
-                  label="Description"
+                  label={t('field.description')}
                   textarea
                 />
 
@@ -166,7 +198,7 @@ export function ServicesModule() {
                       size="sm"
                       className="border-gold/20 text-gold hover:bg-gold/10"
                     >
-                      <Plus className="h-3 w-3 mr-1" /> Add Step
+                      <Plus className="h-3 w-3 me-1" /> {t('services.addStep')}
                     </Button>
                   </div>
                   <div className="space-y-3">
@@ -189,12 +221,12 @@ export function ServicesModule() {
                             <LocalizedInput
                               value={step.title}
                               onChange={(v) => updateServiceStep(editingService.id, step.id, { title: v })}
-                              label="Step Title"
+                              label={t('field.stepTitle')}
                             />
                             <LocalizedInput
                               value={step.description}
                               onChange={(v) => updateServiceStep(editingService.id, step.id, { description: v })}
-                              label="Step Description"
+                              label={t('field.stepDescription')}
                               textarea
                             />
                           </div>

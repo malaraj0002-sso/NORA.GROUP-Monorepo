@@ -17,6 +17,9 @@ import {
 } from '../shared';
 import { LocalizedInput, LanguageTabs } from '../LanguageTabs';
 import { Input } from '@/components/ui/input';
+import { CmsNotice } from '@/components/admin/CmsNotice';
+import { postCms } from '@/lib/cms-client';
+import { useUiI18n } from '@/lib/i18n/UiI18nProvider';
 
 export function HeroModule() {
   const {
@@ -26,16 +29,32 @@ export function HeroModule() {
     deleteHeroSlide,
     reorderHeroSlides,
   } = useAdminData();
+  const { t } = useUiI18n();
 
   const { heroSlides } = data;
 
   return (
     <div className="space-y-6">
       <SectionHeader
-        title="Hero & Slider Manager"
-        subtitle="Manage homepage hero slides with images, titles, and CTAs"
+        title={t('hero.title')}
+        subtitle={t('hero.subtitle')}
         icon={ImageIcon}
-        action={<AddButton onClick={addHeroSlide} label="Add Slide" />}
+        action={
+          <div className="flex items-center gap-2">
+            <AddButton onClick={addHeroSlide} label={t('hero.add')} />
+            <CmsNotice
+              label={t('hero.saveImages')}
+              onSave={async () => {
+                const assetIds = [...heroSlides]
+                  .sort((a, b) => a.order - b.order)
+                  .map((s) => s.id)
+                  .filter((id) => id.startsWith('image-'));
+                const result = await postCms({ resource: 'hero', op: 'patch', data: { assetIds } });
+                if (!result.ok) throw new Error(result.error);
+              }}
+            />
+          </div>
+        }
       />
 
       <div className="space-y-4">
@@ -55,10 +74,10 @@ export function HeroModule() {
                   <div className="w-48 shrink-0">
                     <ImageUpload
                       value={slide.imageUrl}
-                      onChange={(url) =>
-                        updateHeroSlide(slide.id, { imageUrl: url })
+                      onChange={(url, assetId) =>
+                        updateHeroSlide(slide.id, { imageUrl: url, ...(assetId ? { id: assetId } : {}) })
                       }
-                      label="Slide Image"
+                      label={t('field.image')}
                       aspect="aspect-video"
                     />
 
@@ -72,7 +91,7 @@ export function HeroModule() {
                   <div className="flex-1 space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-medium text-gold">
-                        Slide #{slide.order + 1}
+                        {t('hero.slide', { n: slide.order + 1 })}
                       </span>
 
                       <div className="flex items-center gap-3">
@@ -99,7 +118,7 @@ export function HeroModule() {
                         onChange={(v) =>
                           updateHeroSlide(slide.id, { title: v })
                         }
-                        label="Title"
+                        label={t('field.title')}
                       />
 
                       <LocalizedInput
@@ -107,7 +126,7 @@ export function HeroModule() {
                         onChange={(v) =>
                           updateHeroSlide(slide.id, { subtitle: v })
                         }
-                        label="Subtitle"
+                        label={t('field.subtitle')}
                         textarea
                       />
 
@@ -117,11 +136,11 @@ export function HeroModule() {
                           onChange={(v) =>
                             updateHeroSlide(slide.id, { ctaText: v })
                           }
-                          label="CTA Button Text"
+                          label={t('field.cta')}
                         />
 
                         <div>
-                          <FieldLabel>CTA Link</FieldLabel>
+                          <FieldLabel>{t('field.ctaLink')}</FieldLabel>
 
                           <Input
                             value={slide.ctaLink}
@@ -147,7 +166,7 @@ export function HeroModule() {
             <ImageIcon className="h-10 w-10 text-gold/30 mx-auto mb-3" />
 
             <p className="text-sm text-muted-foreground">
-              No hero slides yet. Click &quot;Add Slide&quot; to create one.
+              {t('hero.empty')}
             </p>
           </GlassCard>
         )}

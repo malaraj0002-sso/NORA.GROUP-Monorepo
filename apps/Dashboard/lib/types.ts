@@ -76,6 +76,9 @@ export type Project = {
   published: boolean;
   featured: boolean;
   completedDate: string;
+  slug?: string;
+  imageAssetId?: string;
+  galleryAssetIds?: string[];
 };
 
 export type MaterialSpec = {
@@ -96,11 +99,13 @@ export type MaterialSpec = {
 export type Material = {
   id: string;
   name: string;
+  nameLocales: LocalizedText;
   type: string;
   textureImageUrl: string;
   description: LocalizedText;
   specifications: MaterialSpec;
   published: boolean;
+  slug?: string;
 };
 
 export type ServiceStep = {
@@ -118,6 +123,7 @@ export type Service = {
   description: LocalizedText;
   steps: ServiceStep[];
   published: boolean;
+  slug?: string;
 };
 
 export type Testimonial = {
@@ -151,8 +157,26 @@ export type BlogPost = {
   tags: string[];
 };
 
+export type HomePageContent = {
+  heroTitle: LocalizedText;
+  heroSubtitle: LocalizedText;
+  introTitle: LocalizedText;
+  introDescription: LocalizedText;
+  ctaTitle: LocalizedText;
+  ctaSubtitle: LocalizedText;
+};
+
+export type HowWeWorkStep = {
+  id: string;
+  number: string;
+  title: LocalizedText;
+  description: LocalizedText;
+};
+
 export type AdminData = {
   siteSettings: SiteSettings;
+  homePage: HomePageContent;
+  howWeWorkSteps: HowWeWorkStep[];
   heroSlides: HeroSlide[];
   aboutSettings: AboutSettings;
   projects: Project[];

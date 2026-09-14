@@ -44,7 +44,7 @@ export function ProjectsGrid({
             className={`min-h-11 rounded-full px-6 py-2.5 text-sm font-medium transition-all duration-300 ${
               filter === cat
                 ? 'bg-gold-500 text-white shadow-lg shadow-gold-500/25 scale-105'
-                : 'bg-white text-charcoal-700 border border-gold-200/60 hover:border-gold-400 hover:text-gold-600'
+                : 'bg-card text-foreground border border-gold-200/60 hover:border-gold-400 hover:text-gold-600'
             }`}
           >
             {labels[cat]}
@@ -59,7 +59,7 @@ export function ProjectsGrid({
             <Link
               href={`/projects/${p.slug}`}
               prefetch={true}
-              className="group relative flex flex-col h-full overflow-hidden rounded-2xl border border-gold-200/50 bg-white shadow-sm transition-all duration-500 hover:-translate-y-2 hover:border-gold-400 hover:shadow-2xl hover:shadow-gold-500/20"
+              className="group relative flex flex-col h-full overflow-hidden rounded-2xl border border-gold-200/50 bg-card shadow-sm transition-all duration-500 hover:-translate-y-2 hover:border-gold-400 hover:shadow-2xl hover:shadow-gold-500/20"
             >
               {/* حاوية الصورة وتأثيرات التحويم */}
               <div className="relative aspect-[16/11] w-full overflow-hidden bg-charcoal-900">
@@ -89,12 +89,12 @@ export function ProjectsGrid({
               {/* تفاصيل المشروع */}
               <div className="flex flex-col justify-between flex-1 p-6">
                 <div>
-                  <h3 className="text-xl font-bold text-charcoal-900 transition-colors duration-300 group-hover:text-gold-600">
+                  <h3 className="text-xl font-bold text-foreground transition-colors duration-300 group-hover:text-gold-600">
                     {p.title}
                   </h3>
 
                   {p.description && (
-                    <p className="mt-2.5 line-clamp-2 text-sm leading-relaxed text-charcoal-600">
+                    <p className="mt-2.5 line-clamp-2 text-sm leading-relaxed text-muted">
                       {p.description}
                     </p>
                   )}

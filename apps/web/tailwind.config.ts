@@ -1,6 +1,7 @@
 import type { Config } from 'tailwindcss';
 
 const config: Config = {
+  darkMode: 'class',
   content: [
     './app/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -9,6 +10,12 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        background: 'var(--ng-surface)',
+        foreground: 'var(--ng-ink)',
+        card: 'var(--ng-surface-raised)',
+        muted: 'var(--ng-ink-muted)',
+        'muted-foreground': 'var(--ng-ink-muted)',
+        border: 'var(--ng-border)',
         charcoal: {
           50: '#f6f6f7',
           100: '#e1e3e6',

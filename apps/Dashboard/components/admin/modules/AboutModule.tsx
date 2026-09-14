@@ -6,7 +6,9 @@ import { useAdminData } from '@/lib/AdminDataContext';
 import { GlassCard, SectionHeader, FieldLabel, AddButton, DeleteButton, ItemRow } from '../shared';
 import { LocalizedInput, LanguageTabs } from '../LanguageTabs';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
+import { CmsNotice } from '@/components/admin/CmsNotice';
+import { compactLocale, postCms } from '@/lib/cms-client';
+import { useUiI18n } from '@/lib/i18n/UiI18nProvider';
 
 const ICON_OPTIONS = [
   { value: 'award', label: 'Award', icon: Award },
@@ -27,15 +29,32 @@ function getIcon(name: string) {
 export function AboutModule() {
   const { data, updateAboutSettings, addAboutFeature, updateAboutFeature, deleteAboutFeature } = useAdminData();
   const { aboutSettings } = data;
+  const { t } = useUiI18n();
 
   return (
     <div className="space-y-6">
-      <SectionHeader title="About Us Manager" subtitle="Edit company story, vision, mission, and feature banners" icon={Info} />
+      <SectionHeader
+        title={t('about.title')}
+        subtitle={t('about.subtitle')}
+        icon={Info}
+        action={
+          <CmsNotice
+            onSave={async () => {
+              const result = await postCms({
+                resource: 'about',
+                op: 'patch',
+                data: { story: compactLocale(aboutSettings.story) },
+              });
+              if (!result.ok) throw new Error(result.error);
+            }}
+          />
+        }
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <GlassCard className="lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-foreground">Company Story</h3>
+            <h3 className="text-sm font-semibold text-foreground">{t('about.story')}</h3>
             <LanguageTabs />
           </div>
           <LocalizedInput
@@ -47,7 +66,7 @@ export function AboutModule() {
 
         <GlassCard>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-foreground">Vision</h3>
+            <h3 className="text-sm font-semibold text-foreground">{t('about.vision')}</h3>
             <LanguageTabs />
           </div>
           <LocalizedInput
@@ -60,7 +79,7 @@ export function AboutModule() {
 
       <GlassCard>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-foreground">Mission</h3>
+          <h3 className="text-sm font-semibold text-foreground">{t('about.mission')}</h3>
           <LanguageTabs />
         </div>
         <LocalizedInput
@@ -72,8 +91,8 @@ export function AboutModule() {
 
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-foreground">Feature Banners</h3>
-          <AddButton onClick={addAboutFeature} label="Add Feature" />
+          <h3 className="text-sm font-semibold text-foreground">{t('about.banners')}</h3>
+          <AddButton onClick={addAboutFeature} label={t('about.addFeature')} />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <AnimatePresence>
@@ -89,7 +108,7 @@ export function AboutModule() {
                         </div>
                         <Select value={feature.icon} onValueChange={(v) => updateAboutFeature(feature.id, { icon: v })}>
                           <SelectTrigger className="w-36 h-8 bg-background/50 text-xs">
-                            <SelectValue placeholder="Icon" />
+                            <SelectValue placeholder={t('field.icon')} />
                           </SelectTrigger>
                           <SelectContent>
                             {ICON_OPTIONS.map((opt) => {
@@ -113,12 +132,12 @@ export function AboutModule() {
                     <LocalizedInput
                       value={feature.title}
                       onChange={(v) => updateAboutFeature(feature.id, { title: v })}
-                      label="Title"
+                      label={t('field.title')}
                     />
                     <LocalizedInput
                       value={feature.description}
                       onChange={(v) => updateAboutFeature(feature.id, { description: v })}
-                      label="Description"
+                      label={t('field.description')}
                       textarea
                     />
                   </div>

@@ -65,12 +65,12 @@ export function HomeView({ locale, content }: { locale: AppLocale; content: Site
       />
 
       {/* قسم المقدمة والمربعات الأربعة */}
-      <section className="section-padding bg-warm-50">
+      <section className="section-padding bg-background">
         <div className="container-luxury grid gap-10 lg:grid-cols-2 lg:gap-16">
           <Reveal>
             <p className="heading-eyebrow">{t(home.introEyebrow, locale)}</p>
-            <h2 className="text-section text-charcoal-900">{t(home.introTitle, locale)}</h2>
-            <p className="mt-5 text-lg leading-relaxed text-charcoal-600">
+            <h2 className="text-section text-foreground">{t(home.introTitle, locale)}</h2>
+            <p className="mt-5 text-lg leading-relaxed text-muted">
               {t(home.introDescription, locale)}
             </p>
           </Reveal>
@@ -80,17 +80,17 @@ export function HomeView({ locale, content }: { locale: AppLocale; content: Site
               const Icon = introIcons[i % introIcons.length];
               return (
                 <Reveal key={i} delay={i * 80}>
-                  <div className="group relative h-full overflow-hidden rounded-2xl border border-gold-300/40 bg-gradient-to-br from-white via-white to-warm-100/50 p-6 shadow-sm transition-all duration-300 hover:-translate-y-2 hover:border-gold-400 hover:shadow-2xl hover:shadow-gold-500/15">
+                  <div className="group relative h-full overflow-hidden rounded-2xl border border-gold-300/40 bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-2 hover:border-gold-400 hover:shadow-2xl hover:shadow-gold-500/15">
                     <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-gold-400/10 blur-xl transition-all duration-500 group-hover:bg-gold-400/25" />
 
-                    <div className="relative mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-gold-300/50 bg-gradient-to-tr from-gold-100/80 to-gold-50 text-gold-600 shadow-inner transition-all duration-300 group-hover:scale-110 group-hover:border-gold-500 group-hover:bg-gradient-to-tr group-hover:from-gold-500 group-hover:to-gold-400 group-hover:text-white group-hover:shadow-lg group-hover:shadow-gold-500/30">
+                    <div className="relative mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-gold-300/50 bg-gold-400/10 text-gold-600 shadow-inner transition-all duration-300 group-hover:scale-110 group-hover:border-gold-500 group-hover:bg-gold-500 group-hover:text-white group-hover:shadow-lg group-hover:shadow-gold-500/30">
                       <Icon className="h-7 w-7 transition-transform duration-300 group-hover:rotate-6" />
                     </div>
 
-                    <h3 className="relative text-xl font-bold text-charcoal-900 transition-colors duration-300 group-hover:text-gold-600">
+                    <h3 className="relative text-xl font-bold text-foreground transition-colors duration-300 group-hover:text-gold-600">
                       {t(f.title, locale)}
                     </h3>
-                    <p className="relative mt-2 text-sm leading-relaxed text-charcoal-600">
+                    <p className="relative mt-2 text-sm leading-relaxed text-muted">
                       {t(f.desc, locale)}
                     </p>
                   </div>
@@ -102,13 +102,13 @@ export function HomeView({ locale, content }: { locale: AppLocale; content: Site
       </section>
 
       {/* قسم الخدمات */}
-      <section className="section-padding bg-white">
+      <section className="section-padding bg-background">
         <div className="container-luxury">
           <Reveal>
             <div className="mx-auto mb-12 max-w-2xl text-center">
               <p className="heading-eyebrow">{t(home.servicesEyebrow, locale)}</p>
-              <h2 className="text-section text-charcoal-900">{t(home.servicesTitle, locale)}</h2>
-              <p className="mt-4 text-charcoal-600">{t(home.servicesSubtitle, locale)}</p>
+              <h2 className="text-section text-foreground">{t(home.servicesTitle, locale)}</h2>
+              <p className="mt-4 text-muted">{t(home.servicesSubtitle, locale)}</p>
             </div>
           </Reveal>
 
@@ -119,7 +119,7 @@ export function HomeView({ locale, content }: { locale: AppLocale; content: Site
                 <Reveal key={s.slug} delay={i * 60}>
                   <Link 
                     href={`/services/${s.slug}`} 
-                    className="group relative block overflow-hidden rounded-2xl border border-gold-200/50 bg-white shadow-sm transition-all duration-500 hover:-translate-y-2 hover:border-gold-400 hover:shadow-2xl hover:shadow-gold-500/15"
+                    className="group relative block overflow-hidden rounded-2xl border border-gold-200/50 bg-card shadow-sm transition-all duration-500 hover:-translate-y-2 hover:border-gold-400 hover:shadow-2xl hover:shadow-gold-500/15"
                   >
                     <div className="relative aspect-[4/3] overflow-hidden bg-charcoal-900">
                       <Image
@@ -139,16 +139,16 @@ export function HomeView({ locale, content }: { locale: AppLocale; content: Site
 
                     <div className="p-6">
                       <div className="flex items-center justify-between gap-2">
-                        <h3 className="text-xl font-bold text-charcoal-900 transition-colors duration-300 group-hover:text-gold-600">
+                        <h3 className="text-xl font-bold text-foreground transition-colors duration-300 group-hover:text-gold-600">
                           {t(s.title, locale)}
                         </h3>
                         
-                        <div className="flex h-8 w-8 -translate-x-2 items-center justify-center rounded-full bg-gold-50 text-gold-600 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100 rtl:translate-x-2 rtl:group-hover:translate-x-0">
+                        <div className="flex h-8 w-8 -translate-x-2 items-center justify-center rounded-full bg-gold-400/10 text-gold-600 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100 rtl:translate-x-2 rtl:group-hover:translate-x-0">
                           <ArrowLeft className="h-4 w-4 rtl:rotate-0 rotate-180" />
                         </div>
                       </div>
 
-                      <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-charcoal-600">
+                      <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted">
                         {t(s.description, locale)}
                       </p>
                     </div>
@@ -170,13 +170,13 @@ export function HomeView({ locale, content }: { locale: AppLocale; content: Site
       </section>
 
       {/* قسم المشاريع (أعمالنا) */}
-      <section className="section-padding bg-warm-50">
+      <section className="section-padding bg-background">
         <div className="container-luxury">
           <Reveal>
             <div className="mx-auto mb-12 max-w-2xl text-center">
               <p className="heading-eyebrow">{t(home.projectsEyebrow, locale)}</p>
-              <h2 className="text-section text-charcoal-900">{t(home.projectsTitle, locale)}</h2>
-              <p className="mt-4 text-charcoal-600">{t(home.projectsSubtitle, locale)}</p>
+              <h2 className="text-section text-foreground">{t(home.projectsTitle, locale)}</h2>
+              <p className="mt-4 text-muted">{t(home.projectsSubtitle, locale)}</p>
             </div>
           </Reveal>
 
@@ -277,19 +277,19 @@ export function HomeView({ locale, content }: { locale: AppLocale; content: Site
       </section>
 
       {/* قسم مراحل العمل */}
-      <section className="section-padding bg-white">
+      <section className="section-padding bg-background">
         <div className="container-luxury">
           <Reveal>
             <div className="mx-auto mb-12 max-w-2xl text-center">
               <p className="heading-eyebrow">{t(home.processEyebrow, locale)}</p>
               <h2 className="text-section">{t(home.processTitle, locale)}</h2>
-              <p className="mt-4 text-charcoal-600">{t(home.processSubtitle, locale)}</p>
+              <p className="mt-4 text-muted">{t(home.processSubtitle, locale)}</p>
             </div>
           </Reveal>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
             {content.howWeWork.steps.map((step, i) => (
               <Reveal key={step.number} delay={i * 40}>
-                <div className="rounded-2xl bg-warm-50 p-4 text-center border border-gold-200/30 transition-all hover:border-gold-400 hover:shadow-md">
+                <div className="rounded-2xl bg-card p-4 text-center border border-gold-200/30 transition-all hover:border-gold-400 hover:shadow-md">
                   <p className="text-sm font-bold text-gold-500">{step.number}</p>
                   <h3 className="mt-2 text-sm font-semibold">{t(step.title, locale)}</h3>
                 </div>
@@ -301,13 +301,13 @@ export function HomeView({ locale, content }: { locale: AppLocale; content: Site
 
       {/* قسم الخامات المختارة بعناية المحدث */}
       {materials.length > 0 && (
-        <section className="section-padding bg-warm-50">
+        <section className="section-padding bg-background">
           <div className="container-luxury">
             <Reveal>
               <div className="mx-auto mb-12 max-w-2xl text-center">
                 <p className="heading-eyebrow">{t(home.materialsEyebrow, locale)}</p>
-                <h2 className="text-section text-charcoal-900">{t(home.materialsTitle, locale)}</h2>
-                <p className="mt-4 text-charcoal-600">{t(home.materialsSubtitle, locale)}</p>
+                <h2 className="text-section text-foreground">{t(home.materialsTitle, locale)}</h2>
+                <p className="mt-4 text-muted">{t(home.materialsSubtitle, locale)}</p>
               </div>
             </Reveal>
 
@@ -354,13 +354,13 @@ export function HomeView({ locale, content }: { locale: AppLocale; content: Site
 
       {/* قسم التقييمات */}
       {testimonials.length > 0 && (
-        <section className="section-padding bg-white">
+        <section className="section-padding bg-background">
           <div className="container-luxury">
             <Reveal>
               <div className="mx-auto mb-12 max-w-2xl text-center">
                 <p className="heading-eyebrow">{t(home.testimonialsEyebrow, locale)}</p>
                 <h2 className="text-section">{t(home.testimonialsTitle, locale)}</h2>
-                <p className="mt-4 text-charcoal-600">{t(home.testimonialsSubtitle, locale)}</p>
+                <p className="mt-4 text-muted">{t(home.testimonialsSubtitle, locale)}</p>
               </div>
             </Reveal>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -372,9 +372,9 @@ export function HomeView({ locale, content }: { locale: AppLocale; content: Site
                         <Star key={idx} className="h-4 w-4 fill-current" />
                       ))}
                     </div>
-                    <p className="text-charcoal-700">{t(item.review, locale)}</p>
+                    <p className="text-foreground">{t(item.review, locale)}</p>
                     <p className="mt-4 font-semibold">{item.name}</p>
-                    <p className="text-sm text-charcoal-500">{t(item.project, locale)}</p>
+                    <p className="text-sm text-muted">{t(item.project, locale)}</p>
                   </div>
                 </Reveal>
               ))}

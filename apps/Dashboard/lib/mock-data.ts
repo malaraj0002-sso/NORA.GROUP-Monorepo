@@ -42,6 +42,15 @@ export const mockData: AdminData = {
       { id: 'sl-4', platform: 'Pinterest', url: 'https://pinterest.com/noragroup', icon: 'pinterest' },
     ],
   },
+  homePage: {
+    heroTitle: { ar: '', he: '', en: '' },
+    heroSubtitle: { ar: '', he: '', en: '' },
+    introTitle: { ar: '', he: '', en: '' },
+    introDescription: { ar: '', he: '', en: '' },
+    ctaTitle: { ar: '', he: '', en: '' },
+    ctaSubtitle: { ar: '', he: '', en: '' },
+  },
+  howWeWorkSteps: [],
   heroSlides: [
     {
       id: 'hero-1',
@@ -160,6 +169,7 @@ export const mockData: AdminData = {
     {
       id: 'mat-1',
       name: 'Teak',
+      nameLocales: { ar: '', he: '', en: 'Teak' },
       type: 'Hardwood',
       textureImageUrl: 'https://images.pexels.com/photos/9996341/pexels-photo-9996341.jpeg?auto=compress&cs=tinysrgb&w=940',
       description: {
@@ -186,6 +196,7 @@ export const mockData: AdminData = {
     {
       id: 'mat-2',
       name: 'Oak',
+      nameLocales: { ar: '', he: '', en: 'Oak' },
       type: 'Hardwood',
       textureImageUrl: 'https://images.pexels.com/photos/4998279/pexels-photo-4998279.jpeg?auto=compress&cs=tinysrgb&w=940',
       description: {
@@ -212,6 +223,7 @@ export const mockData: AdminData = {
     {
       id: 'mat-3',
       name: 'Walnut',
+      nameLocales: { ar: '', he: '', en: 'Walnut' },
       type: 'Hardwood',
       textureImageUrl: 'https://images.pexels.com/photos/8337527/pexels-photo-8337527.jpeg?auto=compress&cs=tinysrgb&w=940',
       description: {
@@ -238,6 +250,7 @@ export const mockData: AdminData = {
     {
       id: 'mat-4',
       name: 'Mahogany',
+      nameLocales: { ar: '', he: '', en: 'Mahogany' },
       type: 'Hardwood',
       textureImageUrl: 'https://images.pexels.com/photos/5225594/pexels-photo-5225594.jpeg?auto=compress&cs=tinysrgb&w=940',
       description: {
@@ -287,19 +300,6 @@ export const mockData: AdminData = {
         { id: 'ss-5', stepNumber: 1, title: { ar: 'المعاينة', he: 'בדיקה', en: 'Inspection' }, description: { ar: 'نمعاين الموقع ونأخذ القياسات الدقيقة', he: 'בודקים את האתר ולוקחים מדידות מדויקות', en: 'We inspect the site and take precise measurements' } },
         { id: 'ss-6', stepNumber: 2, title: { ar: 'التنفيذ', he: 'ביצוע', en: 'Execution' }, description: { ar: 'ننفذ التشطيبات بأعلى معايير الجودة', he: 'מבצעים את הגימורים בסטנדרטים הגבוהים ביותר', en: 'We execute finishing to the highest quality standards' } },
         { id: 'ss-7', stepNumber: 3, title: { ar: 'التسليم', he: 'מסירה', en: 'Handover' }, description: { ar: 'نسلم المساحة جاهزة مع جولة توضيحية', he: 'מוסרים את המרחב מוכן עם סיור הדגמה', en: 'We hand over the space ready with a walkthrough' } },
-      ],
-      published: true,
-    },
-    {
-      id: 'svc-3',
-      title: { ar: 'الأبواب الفاخرة', he: 'דלתות יוקרה', en: 'Luxury Doors' },
-      icon: 'door-open',
-      imageUrl: 'https://images.pexels.com/photos/28254550/pexels-photo-28254550.jpeg?auto=compress&cs=tinysrgb&w=940',
-      description: { ar: 'تصميم وتصنيع أبواب خشبية فاخرة بتصاميم فريدة', he: 'עיצוב וייצור דלתות עץ יוקרתיות בעיצובים ייחודיים', en: 'Design and manufacture of luxury wooden doors with unique designs' },
-      steps: [
-        { id: 'ss-8', stepNumber: 1, title: { ar: 'القياس', he: 'מדידה', en: 'Measurement' }, description: { ar: 'نأخذ قياسات دقيقة للفتحة', he: 'לוקחים מדידות מדויקות של הפתח', en: 'We take precise measurements of the opening' } },
-        { id: 'ss-9', stepNumber: 2, title: { ar: 'التصميم', he: 'עיצוב', en: 'Design' }, description: { ar: 'نصمم الباب حسب ذوق العميل', he: 'מעצבים את הדלת לפי טעם הלקוח', en: 'We design the door to the client taste' } },
-        { id: 'ss-10', stepNumber: 3, title: { ar: 'التركيب', he: 'התקנה', en: 'Installation' }, description: { ar: 'نركب الباب بأحدث الأنظمة والأقفال', he: 'מתקינים את הדלת עם מערכות ומנעולים מודרניים', en: 'We install the door with modern systems and locks' } },
       ],
       published: true,
     },
@@ -413,4 +413,44 @@ export const mockData: AdminData = {
       tags: ['Maintenance', 'Tips', 'Care'],
     },
   ],
+};
+
+const emptyLocale = { ar: '', he: '', en: '' };
+
+/** Used on unauthenticated routes so login HTML does not embed CMS or mock content. */
+export const emptyAdminData: AdminData = {
+  siteSettings: {
+    logoUrl: '',
+    siteName: '',
+    tagline: emptyLocale,
+    contactEmail: '',
+    contactPhone: '',
+    contactAddress: emptyLocale,
+    navItems: [],
+    footerCopyright: emptyLocale,
+    footerLinks: [],
+    socialLinks: [],
+  },
+  homePage: {
+    heroTitle: emptyLocale,
+    heroSubtitle: emptyLocale,
+    introTitle: emptyLocale,
+    introDescription: emptyLocale,
+    ctaTitle: emptyLocale,
+    ctaSubtitle: emptyLocale,
+  },
+  howWeWorkSteps: [],
+  heroSlides: [],
+  aboutSettings: {
+    story: emptyLocale,
+    vision: emptyLocale,
+    mission: emptyLocale,
+    featureBanners: [],
+  },
+  projects: [],
+  materials: [],
+  services: [],
+  testimonials: [],
+  faqs: [],
+  blogPosts: [],
 };

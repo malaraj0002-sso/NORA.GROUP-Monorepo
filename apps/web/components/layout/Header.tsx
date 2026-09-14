@@ -5,6 +5,7 @@ import { Menu, MessageCircle, X } from 'lucide-react';
 import { Link, usePathname } from '@/i18n/navigation';
 import { BrandLockup } from '@/components/layout/BrandLockup';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
+import { ThemeToggle, useHtmlDark } from '@/components/ui/ThemeToggle';
 import { useSite } from '@/components/providers/SiteProvider';
 import { getWhatsAppLink } from '@/lib/contact';
 import { logoSrc } from '@/lib/content/media';
@@ -17,6 +18,7 @@ export function Header() {
   const { locale, nav, settings } = chrome;
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const dark = useHtmlDark();
 
   const isHome = pathname === '/';
   const transparent = isHome && !scrolled;
@@ -50,15 +52,15 @@ export function Header() {
 
   const whatsapp = getWhatsAppLink(settings.whatsappE164, t(settings.whatsappMessage, locale));
   const logo = logoSrc(
-    transparent || menuOpen ? settings.logoDarkUrl || settings.logoUrl : settings.logoUrl,
+    transparent || menuOpen || dark ? settings.logoDarkUrl || settings.logoUrl : settings.logoUrl,
   );
 
   const linkClass = (href: string) =>
     `relative z-10 whitespace-nowrap rounded-lg px-2.5 py-2.5 text-sm font-semibold transition-colors xl:px-3.5 xl:text-base ${
       transparent
         ? 'text-warm-50/90 hover:bg-white/10 hover:text-warm-50'
-        : 'text-charcoal-700 hover:bg-charcoal-100 hover:text-charcoal-900'
-    } ${pathname === href ? (transparent ? 'text-warm-50' : 'text-charcoal-900') : ''}`;
+        : 'text-foreground hover:bg-foreground/10 hover:text-foreground'
+    } ${pathname === href ? (transparent ? 'text-warm-50' : 'text-foreground') : ''}`;
 
   return (
     <>
@@ -66,7 +68,7 @@ export function Header() {
         className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
           transparent
             ? 'bg-gradient-to-b from-black/60 via-black/20 to-transparent'
-            : 'border-b border-charcoal-100 bg-warm-50/95 shadow-sm backdrop-blur-md'
+            : 'border-b border-border bg-background/95 shadow-sm backdrop-blur-md'
         }`}
       >
         <div className="container-luxury grid h-20 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 sm:h-24 sm:gap-4">
@@ -92,6 +94,7 @@ export function Header() {
 
           <div className="relative z-20 flex shrink-0 items-center gap-2 sm:gap-3">
             <LanguageSelector light={transparent} />
+            <ThemeToggle transparent={transparent} />
             <a
               href={whatsapp}
               target="_blank"
@@ -104,7 +107,7 @@ export function Header() {
             <button
               type="button"
               className={`inline-flex min-h-12 min-w-12 items-center justify-center rounded-lg lg:hidden ${
-                transparent ? 'text-warm-50' : 'text-charcoal-900'
+                transparent ? 'text-warm-50' : 'text-foreground'
               }`}
               onClick={() => setMenuOpen(true)}
               aria-label="Menu"

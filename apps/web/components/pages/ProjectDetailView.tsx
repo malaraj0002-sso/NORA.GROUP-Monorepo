@@ -38,7 +38,7 @@ export function ProjectDetailView({
         image={project.images[0]}
       />
 
-      <section className="section-padding bg-warm-50/60 relative overflow-hidden">
+      <section className="section-padding bg-background relative overflow-hidden">
         <div className="container-luxury space-y-12">
           
           {/* معرض صور المشروع الفاخر */}
@@ -62,7 +62,7 @@ export function ProjectDetailView({
           {/* المواد المستخدمة في المشروع */}
           {project.materials.length > 0 && (
             <Reveal delay={100}>
-              <div className="rounded-2xl border border-gold-200/60 bg-white p-6 shadow-sm">
+              <div className="rounded-2xl border border-gold-200/60 bg-card p-6 shadow-sm">
                 <div className="flex items-center gap-2 text-gold-600 mb-4">
                   <Layers className="h-4 w-4" />
                   <span className="text-xs font-semibold tracking-wider uppercase">
@@ -73,7 +73,7 @@ export function ProjectDetailView({
                   {project.materials.map((m) => (
                     <span
                       key={m}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-gold-200/80 bg-warm-50/80 px-4 py-2 text-sm font-semibold text-charcoal-800 backdrop-blur-sm transition-all duration-300 hover:border-gold-400 hover:bg-gold-50 hover:text-gold-700"
+                      className="inline-flex items-center gap-1.5 rounded-full border border-gold-200/80 bg-gold-400/10 px-4 py-2 text-sm font-semibold text-foreground backdrop-blur-sm transition-all duration-300 hover:border-gold-400 hover:bg-gold-400/20 hover:text-gold-600"
                     >
                       <Sparkles className="h-3.5 w-3.5 text-gold-500" />
                       <span>{materialName(m)}</span>
@@ -92,7 +92,7 @@ export function ProjectDetailView({
                   <span className="text-xs font-semibold uppercase tracking-wider text-gold-600">
                     {locale === 'ar' ? 'استكشف المزيد' : 'Explore More'}
                   </span>
-                  <h2 className="text-2xl font-bold text-charcoal-900 mt-1">
+                  <h2 className="text-2xl font-bold text-foreground mt-1">
                     {content.ui[locale].relatedProjects}
                   </h2>
                 </div>
@@ -103,7 +103,7 @@ export function ProjectDetailView({
                       <Link
                         href={`/projects/${p.slug}`}
                         prefetch={true}
-                        className="group relative flex flex-col overflow-hidden rounded-2xl border border-gold-200/50 bg-white shadow-sm transition-all duration-500 hover:-translate-y-2 hover:border-gold-400 hover:shadow-2xl hover:shadow-gold-500/15 h-full"
+                        className="group relative flex flex-col overflow-hidden rounded-2xl border border-gold-200/50 bg-card shadow-sm transition-all duration-500 hover:-translate-y-2 hover:border-gold-400 hover:shadow-2xl hover:shadow-gold-500/15 h-full"
                       >
                         <div className="relative aspect-[4/3] w-full overflow-hidden bg-charcoal-900">
                           <Image
@@ -119,7 +119,7 @@ export function ProjectDetailView({
                           </div>
                         </div>
                         <div className="p-5 flex-1 flex flex-col justify-between">
-                          <h3 className="font-bold text-charcoal-900 transition-colors duration-300 group-hover:text-gold-600">
+                          <h3 className="font-bold text-foreground transition-colors duration-300 group-hover:text-gold-600">
                             {t(p.title, locale)}
                           </h3>
                           <div className="mt-4 flex items-center text-xs font-semibold text-gold-600 transition-all duration-300 group-hover:translate-x-1 rtl:group-hover:-translate-x-1">

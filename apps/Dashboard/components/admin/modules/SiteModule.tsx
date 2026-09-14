@@ -10,6 +10,9 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { CmsNotice } from '@/components/admin/CmsNotice';
+import { compactLocale, postCms } from '@/lib/cms-client';
+import { useUiI18n } from '@/lib/i18n/UiI18nProvider';
 
 export function SiteModule() {
   const {
@@ -19,40 +22,62 @@ export function SiteModule() {
     addFooterLink, updateFooterLink, deleteFooterLink,
   } = useAdminData();
   const { siteSettings } = data;
+  const { t } = useUiI18n();
   const [tab, setTab] = useState('brand');
 
   return (
     <div className="space-y-6">
-      <SectionHeader title="Site & Navigation Manager" subtitle="Manage logo, brand info, navbar, and footer" icon={Settings} />
+      <SectionHeader
+        title={t('site.title')}
+        subtitle={t('site.subtitle')}
+        icon={Settings}
+        action={
+          <CmsNotice
+            onSave={async () => {
+              const result = await postCms({
+                resource: 'site',
+                op: 'patch',
+                data: {
+                  siteName: siteSettings.siteName,
+                  tagline: compactLocale(siteSettings.tagline),
+                  contactEmail: siteSettings.contactEmail || undefined,
+                  contactAddress: compactLocale(siteSettings.contactAddress),
+                },
+              });
+              if (!result.ok) throw new Error(result.error);
+            }}
+          />
+        }
+      />
 
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="bg-muted/50 border border-border/50">
-          <TabsTrigger value="brand" className="data-[state=active]:bg-gold/10 data-[state=active]:text-gold">Brand Info</TabsTrigger>
-          <TabsTrigger value="nav" className="data-[state=active]:bg-gold/10 data-[state=active]:text-gold">Navbar Links</TabsTrigger>
-          <TabsTrigger value="footer" className="data-[state=active]:bg-gold/10 data-[state=active]:text-gold">Footer</TabsTrigger>
+          <TabsTrigger value="brand" className="data-[state=active]:bg-gold/10 data-[state=active]:text-gold">{t('site.brandTab')}</TabsTrigger>
+          <TabsTrigger value="nav" className="data-[state=active]:bg-gold/10 data-[state=active]:text-gold">{t('site.navTab')}</TabsTrigger>
+          <TabsTrigger value="footer" className="data-[state=active]:bg-gold/10 data-[state=active]:text-gold">{t('site.footerTab')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="brand" className="space-y-6">
           <GlassCard>
-            <h3 className="text-sm font-semibold text-foreground mb-4">Logo & Brand</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-4">{t('site.logoBrand')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <ImageUpload
                   value={siteSettings.logoUrl}
                   onChange={(url) => updateSiteSettings({ logoUrl: url })}
-                  label="Site Logo"
+                  label={t('field.logo')}
                 />
                 {siteSettings.logoUrl && (
                   <div className="mt-3 glass rounded-lg p-4 flex items-center gap-3">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={siteSettings.logoUrl} alt="Logo" className="h-12 w-auto" />
-                    <span className="text-xs text-muted-foreground">Logo preview</span>
+                    <span className="text-xs text-muted-foreground">{t('site.logoPreview')}</span>
                   </div>
                 )}
               </div>
               <div className="space-y-4">
                 <div>
-                  <FieldLabel>Site Name</FieldLabel>
+                  <FieldLabel>{t('site.siteName')}</FieldLabel>
                   <Input
                     value={siteSettings.siteName}
                     onChange={(e) => updateSiteSettings({ siteName: e.target.value })}
@@ -61,7 +86,7 @@ export function SiteModule() {
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <FieldLabel>Tagline</FieldLabel>
+                    <FieldLabel>{t('site.tagline')}</FieldLabel>
                     <LanguageTabs />
                   </div>
                   <LocalizedInput
@@ -75,11 +100,11 @@ export function SiteModule() {
 
           <GlassCard>
             <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
-              <Phone className="h-4 w-4 text-gold" /> Contact Information
+              <Phone className="h-4 w-4 text-gold" /> {t('site.contact')}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <FieldLabel><span className="flex items-center gap-1"><Mail className="h-3 w-3" /> Email</span></FieldLabel>
+                <FieldLabel><span className="flex items-center gap-1"><Mail className="h-3 w-3" /> {t('field.email')}</span></FieldLabel>
                 <Input
                   value={siteSettings.contactEmail}
                   onChange={(e) => updateSiteSettings({ contactEmail: e.target.value })}
@@ -87,7 +112,7 @@ export function SiteModule() {
                 />
               </div>
               <div>
-                <FieldLabel><span className="flex items-center gap-1"><Phone className="h-3 w-3" /> Phone</span></FieldLabel>
+                <FieldLabel><span className="flex items-center gap-1"><Phone className="h-3 w-3" /> {t('field.phone')}</span></FieldLabel>
                 <Input
                   value={siteSettings.contactPhone}
                   onChange={(e) => updateSiteSettings({ contactPhone: e.target.value })}
@@ -96,7 +121,7 @@ export function SiteModule() {
               </div>
               <div className="md:col-span-2">
                 <div className="flex items-center justify-between mb-1.5">
-                  <FieldLabel><span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> Address</span></FieldLabel>
+                  <FieldLabel><span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {t('field.address')}</span></FieldLabel>
                   <LanguageTabs />
                 </div>
                 <LocalizedInput
@@ -111,7 +136,7 @@ export function SiteModule() {
         <TabsContent value="nav" className="space-y-4">
           <div className="flex items-center justify-between">
             <p className="text-sm text-muted-foreground">{siteSettings.navItems.length} navigation items</p>
-            <AddButton onClick={addNavItem} label="Add Nav Item" />
+            <AddButton onClick={addNavItem} label={t('site.addNav')} />
           </div>
           <div className="space-y-3">
             <AnimatePresence>
@@ -173,7 +198,7 @@ export function SiteModule() {
           <GlassCard>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-semibold text-foreground">Footer Links</h3>
-              <AddButton onClick={addFooterLink} label="Add Link" />
+              <AddButton onClick={addFooterLink} label={t('site.addLink')} />
             </div>
             <div className="space-y-3">
               <AnimatePresence>
@@ -214,7 +239,7 @@ export function SiteModule() {
               <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                 <Globe className="h-4 w-4 text-gold" /> Social Links
               </h3>
-              <AddButton onClick={addSocialLink} label="Add Social" />
+              <AddButton onClick={addSocialLink} label={t('site.addSocial')} />
             </div>
             <div className="space-y-3">
               <AnimatePresence>

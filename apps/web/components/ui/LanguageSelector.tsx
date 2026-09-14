@@ -29,7 +29,7 @@ export function LanguageSelector({ light = false }: { light?: boolean }) {
         className={`inline-flex min-h-11 min-w-11 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
           light
             ? 'text-warm-50/90 hover:bg-white/10 hover:text-warm-50'
-            : 'text-charcoal-700 hover:bg-charcoal-100'
+            : 'text-foreground hover:bg-foreground/10'
         }`}
         aria-label="Language"
         aria-expanded={open}
@@ -38,7 +38,7 @@ export function LanguageSelector({ light = false }: { light?: boolean }) {
         <span className="hidden sm:inline">{LOCALE_META[locale].label}</span>
       </button>
       {open && (
-        <div className="absolute end-0 top-full z-50 mt-2 min-w-[150px] rounded-lg border border-charcoal-100 bg-white py-2 shadow-xl">
+        <div className="absolute end-0 top-full z-50 mt-2 min-w-[150px] rounded-lg border border-border bg-card py-2 shadow-xl">
           {LOCALES.map((code) => (
             <button
               key={code}
@@ -47,7 +47,7 @@ export function LanguageSelector({ light = false }: { light?: boolean }) {
                 router.replace(pathname, { locale: code });
                 setOpen(false);
               }}
-              className="flex w-full items-center justify-between px-4 py-2.5 text-sm text-charcoal-800 hover:bg-warm-100"
+              className="flex w-full items-center justify-between px-4 py-2.5 text-sm text-foreground hover:bg-foreground/10"
             >
               <span>{LOCALE_META[code].label}</span>
               {locale === code && <Check className="h-4 w-4 text-gold-500" />}
