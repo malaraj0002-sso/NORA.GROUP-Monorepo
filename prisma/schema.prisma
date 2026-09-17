@@ -1,0 +1,627 @@
+// Nora Group — PostgreSQL foundation (Phase 1)
+//
+// This schema is the intended future source of truth for Website + Dashboard.
+// It is NOT wired to the apps yet. Sanity remains the live CMS until a later phase.
+//
+// Localized fields use JSONB with this exact contract (matches SiteContent LocalizedString):
+//   { "he": string, "ar": string, "en": string, "ru": string }
+// Do not omit `ru`. Application code must validate the four keys.
+//
+// Service slugs are a closed enum of the seven official services. There is no doors value.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum Locale {
+  he
+  ar
+  en
+  ru
+}
+
+/// Closed set. Matches apps/web/lib/constants.ts SERVICE_SLUGS.
+/// Hyphenated website slugs are stored via @map. There is no doors member.
+enum ServiceSlug {
+  kitchens
+  bedrooms
+  wardrobes
+  walkInClosets    @map("walk-in-closets")
+  customFurniture  @map("custom-furniture")
+  offices
+  commercial
+}
+
+/// Matches apps/web/lib/constants.ts PROJECT_CATEGORIES as used by the website today.
+/// Mapping to the seven services (documented, not guessed at write time):
+///   kitchens    → kitchens
+///   bedrooms    → bedrooms
+///   wardrobes   → wardrobes
+///   furniture   → custom-furniture (offices / walk-in-closets have no project category today)
+///   commercial  → commercial
+enum ProjectCategory {
+  kitchens
+  bedrooms
+  wardrobes
+  furniture
+  commercial
+}
+
+enum RoleName {
+  owner
+  admin
+  editor
+  employee
+}
+
+/// Future object storage. EXTERNAL is for existing public/local URLs during a later import.
+/// Do not insert fake R2 URLs.
+enum MediaProvider {
+  R2
+  LOCAL
+  EXTERNAL
+}
+
+enum LegalSlug {
+  privacy
+  cookies
+  terms
+}
+
+// ---------------------------------------------------------------------------
+// Authentication / RBAC
+// ---------------------------------------------------------------------------
+
+/// Password hashes only (Argon2id in a later auth migration). Never plaintext.
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  passwordAlgo String    @default("argon2id")
+  roleId       String
+  enabled      Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  role      Role       @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  sessions  Session[]
+  auditLogs AuditLog[]
+
+  @@index([roleId])
+  @@index([enabled])
+  @@map("users")
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        RoleName @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users       User[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+/// Application permission codes (not an enum, so new codes do not require a DB enum migration).
+/// Intended codes from current Dashboard APIs:
+///   cms.read, cms.write, cms.delete, media.upload, users.manage, translations.manage, audit.read
+model Permission {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+
+  roles RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+  assignedAt   DateTime @default(now())
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@index([permissionId])
+  @@map("role_permissions")
+}
+
+/// Store a hash of the session token, never the raw cookie value.
+model Session {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  action    String
+  entity    String
+  entityId  String?
+  metadata  Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([actorId, createdAt])
+  @@index([entity, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ---------------------------------------------------------------------------
+// Media (Cloudflare R2 later; no uploads in this phase)
+// ---------------------------------------------------------------------------
+
+model Media {
+  id        String        @id @default(cuid())
+  provider  MediaProvider @default(R2)
+  objectKey String?
+  url       String?
+  filename  String?
+  mimeType  String?
+  sizeBytes Int?
+  width     Int?
+  height    Int?
+  /// LocalizedString JSON for alt text: { he, ar, en, ru }
+  alt       Json?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  serviceLinks     ServiceMedia[]
+  projectLinks     ProjectMedia[]
+  materialLinks    MaterialMedia[]
+  blogPosts        BlogPost[]
+  homeHeroLinks    HomeHeroMedia[]
+  siteLogos        SiteSettings[]    @relation("SiteLogo")
+  siteLogosDark    SiteSettings[]    @relation("SiteLogoDark")
+  siteQr           SiteSettings[]    @relation("SiteQr")
+  aboutPages       AboutPage[]
+  howWeWorkPages   HowWeWorkPage[]
+  contactPages     ContactPage[]
+  testimonialAvatars Testimonial[]
+
+  @@index([provider, objectKey])
+  @@map("media")
+}
+
+// ---------------------------------------------------------------------------
+// Site settings + pages (singletons via unique key)
+// ---------------------------------------------------------------------------
+
+model SiteSettings {
+  id             String   @id @default("default")
+  brandName      String
+  /// LocalizedString
+  tagline        Json
+  pillars        Json
+  phoneDisplay   String
+  phoneTel       String
+  whatsappE164   String
+  email          String
+  address        Json
+  workingHours   Json
+  whatsappMessage Json
+  seoTitle       Json
+  seoDescription Json
+  logoMediaId    String?
+  logoDarkMediaId String?
+  qrMediaId      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  logo     Media? @relation("SiteLogo", fields: [logoMediaId], references: [id], onDelete: SetNull)
+  logoDark Media? @relation("SiteLogoDark", fields: [logoDarkMediaId], references: [id], onDelete: SetNull)
+  qr       Media? @relation("SiteQr", fields: [qrMediaId], references: [id], onDelete: SetNull)
+
+  @@map("site_settings")
+}
+
+model HomePage {
+  id        String   @id @default("default")
+  /// All of the following Json columns are LocalizedString.
+  heroTitle Json
+  heroSubtitle Json
+  introEyebrow Json
+  introTitle Json
+  introDescription Json
+  whyEyebrow Json
+  whyTitle Json
+  whySubtitle Json
+  processEyebrow Json
+  processTitle Json
+  processSubtitle Json
+  servicesEyebrow Json
+  servicesTitle Json
+  servicesSubtitle Json
+  projectsEyebrow Json
+  projectsTitle Json
+  projectsSubtitle Json
+  materialsEyebrow Json
+  materialsTitle Json
+  materialsSubtitle Json
+  testimonialsEyebrow Json
+  testimonialsTitle Json
+  testimonialsSubtitle Json
+  ctaTitle Json
+  ctaSubtitle Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  introFeatures HomeIntroFeature[]
+  whyItems      HomeWhyItem[]
+  heroMedia     HomeHeroMedia[]
+
+  @@map("home_pages")
+}
+
+model HomeIntroFeature {
+  id          String   @id @default(cuid())
+  homePageId  String
+  sortOrder   Int      @default(0)
+  title       Json
+  description Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  homePage HomePage @relation(fields: [homePageId], references: [id], onDelete: Cascade)
+
+  @@index([homePageId, sortOrder])
+  @@map("home_intro_features")
+}
+
+model HomeWhyItem {
+  id          String   @id @default(cuid())
+  homePageId  String
+  sortOrder   Int      @default(0)
+  title       Json
+  description Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  homePage HomePage @relation(fields: [homePageId], references: [id], onDelete: Cascade)
+
+  @@index([homePageId, sortOrder])
+  @@map("home_why_items")
+}
+
+model HomeHeroMedia {
+  homePageId String
+  mediaId    String
+  sortOrder  Int    @default(0)
+
+  homePage HomePage @relation(fields: [homePageId], references: [id], onDelete: Cascade)
+  media    Media    @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+
+  @@id([homePageId, mediaId])
+  @@index([homePageId, sortOrder])
+  @@map("home_hero_media")
+}
+
+model AboutPage {
+  id            String   @id @default("default")
+  eyebrow       Json
+  title         Json
+  subtitle      Json
+  body          Json
+  valuesTitle   Json
+  imageMediaId  String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  image  Media?       @relation(fields: [imageMediaId], references: [id], onDelete: SetNull)
+  values AboutValue[]
+
+  @@map("about_pages")
+}
+
+model AboutValue {
+  id          String   @id @default(cuid())
+  aboutPageId String
+  sortOrder   Int      @default(0)
+  title       Json
+  description Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  aboutPage AboutPage @relation(fields: [aboutPageId], references: [id], onDelete: Cascade)
+
+  @@index([aboutPageId, sortOrder])
+  @@map("about_values")
+}
+
+model HowWeWorkPage {
+  id           String   @id @default("default")
+  eyebrow      Json
+  title        Json
+  subtitle     Json
+  imageMediaId String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  image Media?          @relation(fields: [imageMediaId], references: [id], onDelete: SetNull)
+  steps HowWeWorkStep[]
+
+  @@map("how_we_work_pages")
+}
+
+model HowWeWorkStep {
+  id             String   @id @default(cuid())
+  howWeWorkPageId String
+  number         String
+  sortOrder      Int      @default(0)
+  title          Json
+  description    Json
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  page HowWeWorkPage @relation(fields: [howWeWorkPageId], references: [id], onDelete: Cascade)
+
+  @@index([howWeWorkPageId, sortOrder])
+  @@map("how_we_work_steps")
+}
+
+model ContactPage {
+  id           String   @id @default("default")
+  eyebrow      Json
+  title        Json
+  subtitle     Json
+  imageMediaId String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  image Media? @relation(fields: [imageMediaId], references: [id], onDelete: SetNull)
+
+  @@map("contact_pages")
+}
+
+/// One row per locale + namespace + key.
+/// namespaces used by SiteContent:
+///   nav       → NavLabels (home, about, services, ...)
+///   ui        → chrome strings (footerCta, cookieNotice, ...)
+///   category  → project category labels including "all"
+model UiCopy {
+  id        String   @id @default(cuid())
+  locale    Locale
+  namespace String
+  key       String
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([locale, namespace, key])
+  @@index([namespace, key])
+  @@map("ui_copy")
+}
+
+model LegalDocument {
+  id        String    @id @default(cuid())
+  slug      LegalSlug @unique
+  title     Json
+  updated   Json
+  intro     Json
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  sections LegalSection[]
+
+  @@map("legal_documents")
+}
+
+model LegalSection {
+  id         String   @id @default(cuid())
+  documentId String
+  sortOrder  Int      @default(0)
+  heading    Json
+  body       Json
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  document LegalDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId, sortOrder])
+  @@map("legal_sections")
+}
+
+// ---------------------------------------------------------------------------
+// Catalog
+// ---------------------------------------------------------------------------
+
+model Service {
+  id               String      @id @default(cuid())
+  slug             ServiceSlug @unique
+  /// LocalizedString — website ServiceItem.title
+  title            Json
+  description      Json
+  shortDescription Json?
+  seoTitle         Json?
+  seoDescription   Json?
+  published        Boolean     @default(true)
+  sortOrder        Int         @default(0)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  features ServiceFeature[]
+  media    ServiceMedia[]
+
+  @@index([published, sortOrder])
+  @@map("services")
+}
+
+model ServiceFeature {
+  id        String   @id @default(cuid())
+  serviceId String
+  sortOrder Int      @default(0)
+  /// LocalizedString
+  text      Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@index([serviceId, sortOrder])
+  @@map("service_features")
+}
+
+model ServiceMedia {
+  serviceId String
+  mediaId   String
+  sortOrder Int    @default(0)
+
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  media   Media   @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+
+  @@id([serviceId, mediaId])
+  @@index([serviceId, sortOrder])
+  @@map("service_media")
+}
+
+model Project {
+  id          String          @id @default(cuid())
+  slug        String          @unique
+  title       Json
+  description Json
+  category    ProjectCategory
+  /// Website ProjectItem.materials: wood-type labels, not FK rows.
+  woodTypes   String[]        @default([])
+  published   Boolean         @default(true)
+  featured    Boolean         @default(false)
+  sortOrder   Int             @default(0)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  media ProjectMedia[]
+
+  @@index([published, sortOrder])
+  @@index([category])
+  @@map("projects")
+}
+
+model ProjectMedia {
+  projectId String
+  mediaId   String
+  sortOrder Int    @default(0)
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  media   Media   @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+
+  @@id([projectId, mediaId])
+  @@index([projectId, sortOrder])
+  @@map("project_media")
+}
+
+model Material {
+  id               String   @id @default(cuid())
+  slug             String   @unique
+  name             Json
+  description      Json
+  characteristics  Json
+  applications     Json
+  finishes         Json
+  published        Boolean  @default(true)
+  sortOrder        Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  media MaterialMedia[]
+
+  @@index([published, sortOrder])
+  @@map("materials")
+}
+
+model MaterialMedia {
+  materialId String
+  mediaId    String
+  sortOrder  Int    @default(0)
+
+  material Material @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  media    Media    @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+
+  @@id([materialId, mediaId])
+  @@index([materialId, sortOrder])
+  @@map("material_media")
+}
+
+model Testimonial {
+  id           String   @id @default(cuid())
+  name         String
+  rating       Int
+  review       Json
+  project      Json
+  published    Boolean  @default(true)
+  sortOrder    Int      @default(0)
+  avatarMediaId String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  avatar Media? @relation(fields: [avatarMediaId], references: [id], onDelete: SetNull)
+
+  @@index([published, sortOrder])
+  @@map("testimonials")
+}
+
+model BlogPost {
+  id               String    @id @default(cuid())
+  slug             String    @unique
+  title            Json
+  excerpt          Json
+  content          Json
+  seoTitle         Json?
+  seoDescription   Json?
+  category         String    @default("")
+  author           String    @default("Nora Group")
+  published        Boolean   @default(true)
+  publishedAt      DateTime?
+  featuredMediaId  String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  featuredMedia Media? @relation(fields: [featuredMediaId], references: [id], onDelete: SetNull)
+
+  @@index([published, publishedAt])
+  @@index([slug])
+  @@map("blog_posts")
+}
+
+model FaqItem {
+  id         String   @id @default(cuid())
+  category   String   @default("")
+  question   Json
+  answer     Json
+  published  Boolean  @default(true)
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([published, sortOrder])
+  @@map("faq_items")
+}

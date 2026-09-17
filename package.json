@@ -16,9 +16,16 @@
     "typecheck:web": "pnpm --filter @nora/web typecheck",
     "typecheck:dashboard": "pnpm --filter @nora/dashboard typecheck",
     "typecheck": "pnpm typecheck:web && pnpm typecheck:dashboard",
-    "check": "pnpm typecheck:web && pnpm build"
+    "check": "pnpm typecheck:web && pnpm build",
+    "prisma:validate": "prisma validate",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate:status": "prisma migrate status"
   },
   "devDependencies": {
-    "concurrently": "^9.2.1"
+    "concurrently": "^9.2.1",
+    "prisma": "6.16.3"
+  },
+  "dependencies": {
+    "@prisma/client": "6.16.3"
   }
 }
