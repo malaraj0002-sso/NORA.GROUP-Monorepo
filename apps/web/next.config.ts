@@ -22,7 +22,7 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react', 'framer-motion'],
   },
-  serverExternalPackages: ['@sanity/vision'],
+  serverExternalPackages: ['@sanity/vision', '@prisma/client', 'prisma'],
   async headers() {
     const marketingCsp = [
       "default-src 'self'",
