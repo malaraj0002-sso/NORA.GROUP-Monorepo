@@ -22,7 +22,7 @@ import type {
   HowWeWorkStep,
 } from './types';
 
-export type ContentSource = 'sanity' | 'mock';
+export type ContentSource = 'postgres' | 'sanity' | 'mock' | 'unavailable';
 
 type AdminContextType = {
   data: AdminData;

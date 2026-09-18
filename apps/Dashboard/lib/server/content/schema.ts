@@ -1,10 +1,11 @@
 import { z } from 'zod';
-import { isForbiddenDoorService } from '@/lib/sanity/map';
+import { isForbiddenDoorService } from '@/lib/db/services';
 
 export const localePatchSchema = z.object({
   he: z.string().optional(),
   ar: z.string().optional(),
   en: z.string().optional(),
+  ru: z.string().optional(),
 });
 
 export const PROJECT_CATEGORIES = [
@@ -31,6 +32,8 @@ const idSchema = z
   .max(200)
   .regex(/^[a-zA-Z0-9._-]+$/);
 
+const mediaIdSchema = z.string().min(1).max(200).regex(/^[a-zA-Z0-9._-]+$/);
+
 export const mutationSchema = z.discriminatedUnion('resource', [
   z.object({
     resource: z.literal('project'),
@@ -43,7 +46,7 @@ export const mutationSchema = z.discriminatedUnion('resource', [
         category: z.enum(PROJECT_CATEGORIES).optional(),
         woodTypes: z.array(z.string().max(80)).optional(),
         published: z.boolean().optional(),
-        assetIds: z.array(z.string().regex(/^image-[A-Za-z0-9._-]+$/).max(200)).max(20).optional(),
+        assetIds: z.array(mediaIdSchema).max(20).optional(),
         slug: z
           .string()
           .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/i)
@@ -62,7 +65,7 @@ export const mutationSchema = z.discriminatedUnion('resource', [
         description: localePatchSchema.optional(),
         published: z.boolean().optional(),
         slug: z.enum(SERVICE_SLUGS).optional(),
-        assetIds: z.array(z.string().regex(/^image-[A-Za-z0-9._-]+$/).max(200)).max(1).optional(),
+        assetIds: z.array(mediaIdSchema).max(1).optional(),
         features: z.array(localePatchSchema).max(20).optional(),
       })
       .optional(),
@@ -83,7 +86,7 @@ export const mutationSchema = z.discriminatedUnion('resource', [
           .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/i)
           .max(80)
           .optional(),
-        assetIds: z.array(z.string().regex(/^image-[A-Za-z0-9._-]+$/).max(200)).max(1).optional(),
+        assetIds: z.array(mediaIdSchema).max(1).optional(),
         characteristics: localePatchSchema.optional(),
         applications: localePatchSchema.optional(),
         finishes: localePatchSchema.optional(),
@@ -135,7 +138,7 @@ export const mutationSchema = z.discriminatedUnion('resource', [
           .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/i)
           .max(80)
           .optional(),
-        assetIds: z.array(z.string().regex(/^image-[A-Za-z0-9._-]+$/).max(200)).max(1).optional(),
+        assetIds: z.array(mediaIdSchema).max(1).optional(),
         category: z.string().max(80).optional(),
       })
       .optional(),
@@ -151,7 +154,7 @@ export const mutationSchema = z.discriminatedUnion('resource', [
       contactPhone: z.string().max(40).optional(),
       phoneTel: z.string().max(24).optional(),
       whatsappE164: z.string().max(24).optional(),
-      assetIds: z.array(z.string().regex(/^image-[A-Za-z0-9._-]+$/).max(200)).max(3).optional(),
+      assetIds: z.array(mediaIdSchema).max(3).optional(),
     }),
   }),
   z.object({
@@ -177,7 +180,7 @@ export const mutationSchema = z.discriminatedUnion('resource', [
     resource: z.literal('hero'),
     op: z.literal('patch'),
     data: z.object({
-      assetIds: z.array(z.string().regex(/^image-[A-Za-z0-9._-]+$/).max(200)).max(20),
+      assetIds: z.array(mediaIdSchema).max(20),
     }),
   }),
   z.object({
@@ -187,13 +190,51 @@ export const mutationSchema = z.discriminatedUnion('resource', [
       steps: z
         .array(
           z.object({
-    id: z.string().regex(/^[a-zA-Z0-9._-]+$/).max(80),
+            id: z.string().regex(/^[a-zA-Z0-9._-]+$/).max(80),
             number: z.string().max(8).optional(),
             title: localePatchSchema.optional(),
             description: localePatchSchema.optional(),
           }),
         )
         .max(20),
+    }),
+  }),
+  z.object({
+    resource: z.literal('contact'),
+    op: z.literal('patch'),
+    data: z.object({
+      eyebrow: localePatchSchema.optional(),
+      title: localePatchSchema.optional(),
+      subtitle: localePatchSchema.optional(),
+    }),
+  }),
+  z.object({
+    resource: z.literal('uiCopy'),
+    op: z.literal('patch'),
+    data: z.object({
+      locale: z.enum(['he', 'ar', 'en', 'ru']),
+      namespace: z.enum(['nav', 'ui', 'category']),
+      key: z.string().min(1).max(80).regex(/^[a-zA-Z0-9._-]+$/),
+      value: z.string().max(2000),
+    }),
+  }),
+  z.object({
+    resource: z.literal('legal'),
+    op: z.literal('patch'),
+    data: z.object({
+      slug: z.enum(['privacy', 'cookies', 'terms']),
+      title: localePatchSchema.optional(),
+      updated: localePatchSchema.optional(),
+      intro: localePatchSchema.optional(),
+      sections: z
+        .array(
+          z.object({
+            heading: localePatchSchema.optional(),
+            body: localePatchSchema.optional(),
+          }),
+        )
+        .max(40)
+        .optional(),
     }),
   }),
 ]);
@@ -207,7 +248,9 @@ export function rejectDoorMutation(input: MutationInput): string | null {
     isForbiddenDoorService({
       id: input.id,
       slug: input.data?.slug,
-      title: title ? { he: title.he || '', ar: title.ar || '', en: title.en || '' } : undefined,
+      title: title
+        ? { he: title.he || '', ar: title.ar || '', en: title.en || '', ru: title.ru || '' }
+        : undefined,
     })
   ) {
     return 'Door services are not permitted';

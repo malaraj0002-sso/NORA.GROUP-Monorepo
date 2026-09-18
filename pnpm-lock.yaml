@@ -30,6 +30,9 @@ importers:
       '@netlify/plugin-nextjs':
         specifier: ^5.15.1
         version: 5.15.13
+      '@prisma/client':
+        specifier: 6.16.3
+        version: 6.16.3(prisma@6.16.3(typescript@5.2.2))(typescript@5.2.2)
       '@radix-ui/react-accordion':
         specifier: ^1.2.0
         version: 1.2.20(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -180,6 +183,9 @@ importers:
       recharts:
         specifier: ^2.12.7
         version: 2.15.4(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      server-only:
+        specifier: ^0.0.1
+        version: 0.0.1
       sonner:
         specifier: ^1.5.0
         version: 1.7.4(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -201,6 +207,10 @@ importers:
       zod:
         specifier: ^3.23.8
         version: 3.25.76
+    devDependencies:
+      tsx:
+        specifier: ^4.20.5
+        version: 4.23.13
 
   apps/web:
     dependencies:
@@ -9700,6 +9710,11 @@ snapshots:
 
   '@portabletext/types@2.0.15': {}
 
+  '@prisma/client@6.16.3(prisma@6.16.3(typescript@5.2.2))(typescript@5.2.2)':
+    optionalDependencies:
+      prisma: 6.16.3(typescript@5.2.2)
+      typescript: 5.2.2
+
   '@prisma/client@6.16.3(prisma@6.16.3(typescript@5.9.3))(typescript@5.9.3)':
     optionalDependencies:
       prisma: 6.16.3(typescript@5.9.3)
@@ -14764,6 +14779,16 @@ snapshots:
   pretty-ms@7.0.1:
     dependencies:
       parse-ms: 2.1.0
+
+  prisma@6.16.3(typescript@5.2.2):
+    dependencies:
+      '@prisma/config': 6.16.3
+      '@prisma/engines': 6.16.3
+    optionalDependencies:
+      typescript: 5.2.2
+    transitivePeerDependencies:
+      - magicast
+    optional: true
 
   prisma@6.16.3(typescript@5.9.3):
     dependencies:

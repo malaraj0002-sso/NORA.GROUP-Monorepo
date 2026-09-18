@@ -1,15 +1,12 @@
 import { mutationSchema } from '@/lib/server/content/schema';
-import { applyMutation } from '@/lib/server/content/mutate';
-import { assertSameOrigin, jsonError, requireRole, requireSession } from '@/lib/server/http';
+import { applyMutation } from '@/lib/server/content/postgres/mutate';
+import { assertSameOrigin, jsonError, requirePermission, requireSession } from '@/lib/server/http';
 
 export async function POST(request: Request) {
   if (!assertSameOrigin(request)) return jsonError('Invalid origin', 403);
 
   const session = await requireSession(request);
   if (session instanceof Response) return session;
-
-  const allowed = requireRole(session, 'editor');
-  if (allowed instanceof Response) return allowed;
 
   let payload: unknown;
   try {
@@ -23,17 +20,21 @@ export async function POST(request: Request) {
   const parsed = mutationSchema.safeParse(payload);
   if (!parsed.success) return jsonError('Invalid mutation', 400);
 
-  if (parsed.data.op === 'delete') {
-    const del = requireRole(session, 'admin');
-    if (del instanceof Response) return del;
-  }
+  const needed = parsed.data.op === 'delete' ? 'cms.delete' : 'cms.write';
+  const allowed = await requirePermission(session, needed);
+  if (allowed instanceof Response) return allowed;
 
-  const result = await applyMutation(parsed.data);
+  const result = await applyMutation(parsed.data, {
+    session,
+    ipAddress: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || null,
+    userAgent: request.headers.get('user-agent'),
+  });
   if (!result.ok) {
-    return jsonError(result.error, result.status ?? 502);
+    return jsonError(result.error, result.status ?? 500);
   }
   return Response.json({
     ok: true,
+    data: { id: result.id, revalidated: result.revalidated },
     id: result.id,
     revalidated: result.revalidated,
   });

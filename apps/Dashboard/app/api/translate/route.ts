@@ -1,7 +1,8 @@
 import { z } from 'zod';
-import { assertSameOrigin, jsonError, requireRole, requireSession } from '@/lib/server/http';
-import { applyMutation } from '@/lib/server/content/mutate';
+import { assertSameOrigin, jsonError, requirePermission, requireSession } from '@/lib/server/http';
+import { applyMutation } from '@/lib/server/content/postgres/mutate';
 import type { MutationInput } from '@/lib/server/content/schema';
+import type { Session } from '@/lib/auth/session';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -86,7 +87,7 @@ async function saveReviews(items: ReviewItem[]) {
 export async function GET(request: Request) {
   const session = await requireSession(request);
   if (session instanceof Response) return session;
-  const allowed = requireRole(session, 'editor');
+  const allowed = await requirePermission(session, 'translations.manage');
   if (allowed instanceof Response) return allowed;
   const items = await loadReviews();
   return Response.json({ items: items.filter((i) => i.status === 'pending') });
@@ -99,7 +100,7 @@ export async function POST(request: Request) {
 
   const session = await requireSession(request);
   if (session instanceof Response) return session;
-  const allowed = requireRole(session, 'editor');
+  const allowed = await requirePermission(session, 'translations.manage');
   if (allowed instanceof Response) return allowed;
 
   const apiKey = process.env.TRANSLATION_API_KEY?.trim();
@@ -193,7 +194,7 @@ export async function PATCH(request: Request) {
   if (!assertSameOrigin(request)) return jsonError('Invalid origin', 403);
   const session = await requireSession(request);
   if (session instanceof Response) return session;
-  const allowed = requireRole(session, 'editor');
+  const allowed = await requirePermission(session, 'translations.manage');
   if (allowed instanceof Response) return allowed;
 
   let payload: unknown;
@@ -219,7 +220,7 @@ export async function PATCH(request: Request) {
   if (idx < 0) return jsonError('Review not found', 404);
 
   if (parsed.data.status === 'applied') {
-    const applied = await applyReviewToSanity(reviews[idx]);
+    const applied = await applyReviewToPostgres(reviews[idx], session, request);
     if (!applied.ok) return jsonError(applied.error, applied.status ?? 400);
   }
 
@@ -238,11 +239,13 @@ function localePatch(target: string, text: string) {
   return { en: text };
 }
 
-async function applyReviewToSanity(
+async function applyReviewToPostgres(
   item: ReviewItem,
+  session: Session,
+  request: Request,
 ): Promise<{ ok: true } | { ok: false; error: string; status?: number }> {
   if (/^(proj|mat|svc|test|faq|blog)-/.test(item.documentId)) {
-    return { ok: false, error: 'Save the document to Sanity before applying a translation', status: 400 };
+    return { ok: false, error: 'Save the document before applying a translation', status: 400 };
   }
 
   const loc = localePatch(item.target, item.translatedText);
@@ -286,7 +289,11 @@ async function applyReviewToSanity(
     return { ok: false, error: 'This field cannot be applied automatically', status: 400 };
   }
 
-  const result = await applyMutation(input);
+  const result = await applyMutation(input, {
+    session,
+    ipAddress: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || null,
+    userAgent: request.headers.get('user-agent'),
+  });
   if (!result.ok) return { ok: false, error: result.error, status: result.status };
   return { ok: true };
 }

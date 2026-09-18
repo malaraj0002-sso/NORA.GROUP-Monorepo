@@ -39,7 +39,7 @@ export function HomepageModule() {
           />
         }
       />
-      {source !== 'sanity' ? (
+      {source === 'mock' || source === 'unavailable' ? (
         <p className="text-xs text-muted-foreground">{t('common.sanityDisconnected')}</p>
       ) : null}
       <div className="flex justify-end">

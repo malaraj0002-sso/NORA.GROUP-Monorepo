@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { getAuthSecret, readSession, sessionCookieOptions, SESSION_COOKIE, type Role, type Session } from '@/lib/auth/session';
 import { hasMinRole } from '@/lib/auth/rbac';
+import { roleHasPermission, type PermissionCode } from '@/lib/server/permissions';
 
 export function jsonError(message: string, status: number) {
-  return NextResponse.json({ error: message }, { status });
+  return NextResponse.json({ ok: false, error: message }, { status });
 }
 
 function hostname(hostHeader: string): string {
@@ -78,5 +79,14 @@ export async function requireSession(request: Request): Promise<Session | NextRe
 
 export function requireRole(session: Session, min: Role): true | NextResponse {
   if (!hasMinRole(session.role, min)) return jsonError('Forbidden', 403);
+  return true;
+}
+
+export async function requirePermission(
+  session: Session,
+  code: PermissionCode,
+): Promise<true | NextResponse> {
+  const allowed = await roleHasPermission(session.role, code);
+  if (!allowed) return jsonError('Forbidden', 403);
   return true;
 }

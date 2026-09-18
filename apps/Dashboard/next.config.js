@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   poweredByHeader: false,
+  serverExternalPackages: ['@prisma/client', 'prisma'],
   images: { unoptimized: true },
   webpack: (config, { dev }) => {
     if (dev) {

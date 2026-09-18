@@ -41,7 +41,13 @@ export function OverviewModule({ onNavigate }: { onNavigate: (m: AdminModule) =>
         </h1>
         <p className="text-sm text-muted-foreground">{t('overview.welcome')}</p>
         <p className="text-xs text-muted-foreground mt-2">
-          {source === 'sanity' ? t('overview.sourceSanity') : t('overview.sourceMock')}
+          {source === 'postgres'
+            ? t('overview.sourcePostgres')
+            : source === 'sanity'
+              ? t('overview.sourceSanity')
+              : source === 'unavailable'
+                ? t('overview.sourceUnavailable')
+                : t('overview.sourceMock')}
         </p>
       </div>
 

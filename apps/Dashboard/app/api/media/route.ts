@@ -1,7 +1,11 @@
-import { assertSameOrigin, jsonError, requireRole, requireSession } from '@/lib/server/http';
-import { getSanityApiVersion, getSanityDataset, getSanityProjectId } from '@/lib/sanity/env';
+import { mkdir, writeFile } from 'node:fs/promises';
+import path from 'node:path';
+import { assertSameOrigin, jsonError, requirePermission, requireSession } from '@/lib/server/http';
+import { prisma } from '@/lib/db/prisma';
+import { writeAuditLog } from '@/lib/server/audit';
 
 const MAX_BYTES = 8 * 1024 * 1024;
+const MEDIA_DIR = path.join(process.cwd(), '.data', 'media');
 
 function sniffType(bytes: Uint8Array): { mime: string; ext: string } | null {
   if (bytes.length < 12) return null;
@@ -30,12 +34,8 @@ export async function POST(request: Request) {
   if (!assertSameOrigin(request)) return jsonError('Invalid origin', 403);
   const session = await requireSession(request);
   if (session instanceof Response) return session;
-  const allowed = requireRole(session, 'editor');
+  const allowed = await requirePermission(session, 'media.upload');
   if (allowed instanceof Response) return allowed;
-
-  const token = process.env.SANITY_API_WRITE_TOKEN?.trim();
-  const projectId = getSanityProjectId();
-  if (!token || !projectId) return jsonError('Sanity write is not configured', 503);
 
   let form: FormData;
   try {
@@ -48,44 +48,44 @@ export async function POST(request: Request) {
   if (!(file instanceof File)) return jsonError('Missing file', 400);
   if (file.size > MAX_BYTES) return jsonError('File too large', 400);
 
-  const buffer = new Uint8Array(await file.arrayBuffer());
-  const sniffed = sniffType(buffer);
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const sniffed = sniffType(new Uint8Array(buffer));
   if (!sniffed) return jsonError('Unsupported image type', 400);
 
-  const dataset = encodeURIComponent(getSanityDataset());
-  const apiVersion = encodeURIComponent(getSanityApiVersion());
-  const filename = `upload.${sniffed.ext}`;
-  const url = `https://${projectId}.api.sanity.io/v${apiVersion}/assets/images/${dataset}?filename=${encodeURIComponent(filename)}`;
-
-  let response: Response;
   try {
-    response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': sniffed.mime,
-        Accept: 'application/json',
+    const media = await prisma.media.create({
+      data: {
+        provider: 'LOCAL',
+        mimeType: sniffed.mime,
+        sizeBytes: buffer.length,
+        filename: `upload.${sniffed.ext}`,
+        alt: { he: '', ar: '', en: '', ru: '' },
       },
-      body: buffer,
-      signal: AbortSignal.timeout(20000),
+    });
+    await mkdir(MEDIA_DIR, { recursive: true });
+    const objectKey = `${media.id}.${sniffed.ext}`;
+    await writeFile(path.join(MEDIA_DIR, objectKey), buffer);
+    const url = `/api/media/${media.id}`;
+    const updated = await prisma.media.update({
+      where: { id: media.id },
+      data: { objectKey, url },
+    });
+    await writeAuditLog({
+      session,
+      action: 'create',
+      entity: 'media',
+      entityId: updated.id,
+      ipAddress: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || null,
+      userAgent: request.headers.get('user-agent'),
+    });
+    return Response.json({
+      ok: true,
+      data: { assetId: updated.id, url: updated.url },
+      assetId: updated.id,
+      url: updated.url,
     });
   } catch {
-    return jsonError('Upload request failed', 502);
+    console.error('[media] local upload failed');
+    return jsonError('Upload failed', 500);
   }
-
-  const text = await response.text();
-  if (!text.trim()) return jsonError('Empty upload response', 502);
-  let payload: { document?: { _id?: string; url?: string } };
-  try {
-    payload = JSON.parse(text) as { document?: { _id?: string; url?: string } };
-  } catch {
-    return jsonError('Upload returned non-JSON', 502);
-  }
-  if (!response.ok || !payload.document?._id) return jsonError('Upload was rejected', 502);
-
-  return Response.json({
-    ok: true,
-    assetId: payload.document._id,
-    url: payload.document.url || '',
-  });
 }

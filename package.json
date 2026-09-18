@@ -18,13 +18,14 @@
     "typecheck": "pnpm typecheck:web && pnpm typecheck:dashboard",
     "check": "pnpm typecheck:web && pnpm build",
     "prisma:validate": "prisma validate",
-    "prisma:generate": "prisma generate",
+    "prisma:generate": "prisma generate && node prisma/copy-dashboard-client.mjs",
     "prisma:migrate:status": "prisma migrate status",
     "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:ensure-local": "tsx prisma/ensure-local-database.ts",
     "prisma:seed": "prisma db seed",
     "postgres:contract": "pnpm --filter @nora/web postgres:contract",
-    "postgres:parity": "pnpm --filter @nora/web postgres:parity"
+    "postgres:parity": "pnpm --filter @nora/web postgres:parity",
+    "postgres:dashboard-check": "pnpm --filter @nora/dashboard postgres:check"
   },
   "prisma": {
     "seed": "pnpm --filter @nora/web postgres:seed"

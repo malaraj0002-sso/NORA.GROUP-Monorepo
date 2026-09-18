@@ -1,11 +1,11 @@
 import { z } from 'zod';
 import { createUser, listUsers, updateUser, type Role } from '@/lib/auth/users';
-import { assertSameOrigin, jsonError, requireRole, requireSession } from '@/lib/server/http';
+import { assertSameOrigin, jsonError, requirePermission, requireSession } from '@/lib/server/http';
 
 export async function GET(request: Request) {
   const session = await requireSession(request);
   if (session instanceof Response) return session;
-  const allowed = requireRole(session, 'owner');
+  const allowed = await requirePermission(session, 'users.manage');
   if (allowed instanceof Response) return allowed;
   const users = await listUsers();
   return Response.json({ users });
@@ -15,7 +15,7 @@ export async function POST(request: Request) {
   if (!assertSameOrigin(request)) return jsonError('Invalid origin', 403);
   const session = await requireSession(request);
   if (session instanceof Response) return session;
-  const allowed = requireRole(session, 'owner');
+  const allowed = await requirePermission(session, 'users.manage');
   if (allowed instanceof Response) return allowed;
 
   let payload: unknown;
@@ -47,7 +47,7 @@ export async function PATCH(request: Request) {
   if (!assertSameOrigin(request)) return jsonError('Invalid origin', 403);
   const session = await requireSession(request);
   if (session instanceof Response) return session;
-  const allowed = requireRole(session, 'owner');
+  const allowed = await requirePermission(session, 'users.manage');
   if (allowed instanceof Response) return allowed;
 
   let payload: unknown;
