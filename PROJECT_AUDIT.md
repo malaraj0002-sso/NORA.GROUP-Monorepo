@@ -1,5 +1,7 @@
 # Nora Group Monorepo — Project Audit (Phase 0/1)
 
+> **Superseded for current decisions (18 Sep 2026):** see [`CURRENT_STATE_AUDIT.md`](./CURRENT_STATE_AUDIT.md). Sanity is no longer the target CMS. This file remains the 14 Sep source audit (HEAD `de76db4` plus then-uncommitted work).
+
 **Audit date:** 2026-09-14 (evening pass, inspection continued after bootstrap-run rejection)  
 **Branch:** `main` at `de76db4` plus a large uncommitted working tree (Dashboard auth/CMS/i18n work from earlier phases today).  
 **Phase status:** **AUDIT COMPLETE.** No implementation, no Sanity mutations, no `SANITY_API_WRITE_TOKEN` loaded for a write, no `pnpm cms:bootstrap` without `--dry-run`. Next step is owner approval, then implementation.  
