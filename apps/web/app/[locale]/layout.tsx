@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
@@ -8,8 +9,10 @@ import { Header } from '@/components/layout/Header';
 import { CookieNotice } from '@/components/ui/CookieNotice';
 import { FloatingWhatsApp } from '@/components/ui/FloatingWhatsApp';
 import { SiteProvider } from '@/components/providers/SiteProvider';
+import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import { toChrome } from '@/lib/content/chrome';
 import { getSiteContent } from '@/lib/content/getContent';
+import { parseTheme, THEME_COOKIE } from '@/lib/theme';
 import {
   DEFAULT_LOCALE,
   LOCALES,
@@ -86,6 +89,9 @@ export default async function LocaleLayout({
   const messages = await getMessages();
   const content = await getSiteContent();
   const dir = LOCALE_META[locale].dir;
+  const theme = parseTheme((await cookies()).get(THEME_COOKIE)?.value);
+  const localeFont =
+    locale === 'ar' ? ' font-arabic' : locale === 'he' ? ' font-hebrew' : '';
 
   const fontClass =
     locale === 'he'
@@ -98,25 +104,19 @@ export default async function LocaleLayout({
     <html
       lang={LOCALE_META[locale].htmlLang}
       dir={dir}
-      className={`${fontClass}${locale === 'ar' ? ' font-arabic' : locale === 'he' ? ' font-hebrew' : ''}`}
+      className={`${fontClass}${localeFont}${theme === 'dark' ? ' dark' : ''}`}
     >
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html:
-              "(function(){try{if(localStorage.getItem('nora-theme')==='dark')document.documentElement.classList.add('dark')}catch(e){}})();",
-          }}
-        />
-      </head>
       <body className="min-h-screen overflow-x-hidden">
         <NextIntlClientProvider messages={messages}>
-          <SiteProvider chrome={toChrome(content, locale)}>
-            <Header />
-            <main className="min-h-screen">{children}</main>
-            <Footer />
-            <CookieNotice />
-            <FloatingWhatsApp />
-          </SiteProvider>
+          <ThemeProvider initialTheme={theme}>
+            <SiteProvider chrome={toChrome(content, locale)}>
+              <Header />
+              <main className="min-h-screen">{children}</main>
+              <Footer />
+              <CookieNotice />
+              <FloatingWhatsApp />
+            </SiteProvider>
+          </ThemeProvider>
         </NextIntlClientProvider>
       </body>
     </html>
