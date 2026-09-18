@@ -498,5 +498,16 @@ HomeView markup (`<Reveal><Link>`), locale routing, and Sanity data were not cha
 - Production `.next` from this build; start `pnpm --filter @nora/web dev` again before local UI work
 - Blog / legal / 404 / detail routes still need a visual pass
 
+---
+
+## 2026-09-18 — Website PostgreSQL cutover (Sanity removed)
+
+**Branch:** `cursor/postgres-website-cutover-89ec`  
+**Scope:** Public website reads PostgreSQL. Dashboard CMS writes already used Prisma. Sanity Studio, GROQ, and `next-sanity` removed. Seed now includes the existing marketing catalog (projects, materials, testimonials, blog, FAQ).
+
+**Also added:** shared `storage/media` for Dashboard uploads; public `GET /api/media/[id]` on the website; `REVALIDATE_SECRET` + `WEBSITE_REVALIDATE_URL` after CMS saves; blocking theme script to reduce dark-mode flash; `pnpm setup:local` and `LOCAL_SETUP.md`.
+
+**Not in this phase:** Prisma User/Session auth (Owner still from env); Cloudflare R2; production deploy; live AI translation.
+
 
 

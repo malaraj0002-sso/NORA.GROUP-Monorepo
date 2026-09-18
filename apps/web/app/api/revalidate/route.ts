@@ -39,16 +39,20 @@ function unauthorized() {
   return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 }
 
+function revalidateSecret(): string {
+  return process.env.REVALIDATE_SECRET?.trim() || process.env.SANITY_REVALIDATE_SECRET?.trim() || '';
+}
+
 /**
- * Sanity webhook target: POST with header `x-revalidate-secret`.
- * Empty or missing SANITY_REVALIDATE_SECRET rejects every request (fail closed).
+ * Dashboard (and operators) POST with header `x-revalidate-secret`.
+ * Empty secret rejects every request (fail closed).
  */
 export async function POST(request: Request) {
   if (rateLimited(clientIp(request))) {
     return NextResponse.json({ message: 'Too Many Requests' }, { status: 429 });
   }
 
-  const expected = process.env.SANITY_REVALIDATE_SECRET?.trim() ?? '';
+  const expected = revalidateSecret();
   const provided = request.headers.get('x-revalidate-secret') ?? '';
 
   if (!expected || expected.length > MAX_SECRET_BYTES || provided.length > MAX_SECRET_BYTES) {
@@ -59,7 +63,6 @@ export async function POST(request: Request) {
     return unauthorized();
   }
 
-  revalidateTag(REVALIDATE_TAGS.all);
   for (const tag of Object.values(REVALIDATE_TAGS)) {
     revalidateTag(tag);
   }

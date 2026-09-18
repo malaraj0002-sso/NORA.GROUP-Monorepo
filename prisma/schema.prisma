@@ -1,8 +1,4 @@
-// Nora Group — PostgreSQL foundation (Phase 1)
-//
-// This schema is the intended future source of truth for Website + Dashboard.
-// It is NOT wired to the apps yet. Sanity remains the live CMS until a later phase.
-//
+// Nora Group — PostgreSQL source of truth for Website + Dashboard.
 // Localized fields use JSONB with this exact contract (matches SiteContent LocalizedString):
 //   { "he": string, "ar": string, "en": string, "ru": string }
 // Do not omit `ru`. Application code must validate the four keys.

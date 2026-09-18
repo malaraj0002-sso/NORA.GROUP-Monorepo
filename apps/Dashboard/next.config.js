@@ -38,11 +38,11 @@ const nextConfig = {
       "form-action 'self'",
       "frame-ancestors 'none'",
       "object-src 'none'",
-      "img-src 'self' data: blob: https://cdn.sanity.io",
+      "img-src 'self' data: blob:",
       "font-src 'self' data:",
       "style-src 'self' 'unsafe-inline'",
       "script-src 'self' 'unsafe-inline'",
-      "connect-src 'self' https://*.sanity.io https://cdn.sanity.io",
+      "connect-src 'self'",
     ].join('; ');
 
     return [

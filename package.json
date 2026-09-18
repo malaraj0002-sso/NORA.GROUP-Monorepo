@@ -23,6 +23,7 @@
     "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:ensure-local": "tsx prisma/ensure-local-database.ts",
     "prisma:seed": "prisma db seed",
+    "setup:local": "pnpm prisma generate && pnpm prisma:ensure-local && pnpm prisma migrate deploy && pnpm prisma:seed",
     "postgres:contract": "pnpm --filter @nora/web postgres:contract",
     "postgres:parity": "pnpm --filter @nora/web postgres:parity",
     "postgres:dashboard-check": "pnpm --filter @nora/dashboard postgres:check"

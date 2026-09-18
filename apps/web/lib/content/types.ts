@@ -1,6 +1,6 @@
 import type { AppLocale, ProjectCategory, ServiceSlug } from '@/lib/constants';
 
-/** Field-level localization shape used in seed + Sanity */
+/** Field-level localization shape used in seed + PostgreSQL JSONB */
 export type LocalizedString = Record<AppLocale, string>;
 
 export interface SiteSettings {

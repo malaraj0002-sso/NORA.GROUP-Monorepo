@@ -13,16 +13,15 @@ const baseSecurityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
-  transpilePackages: ['next-intl', 'next-sanity', 'sanity'],
+  transpilePackages: ['next-intl'],
   images: {
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 60 * 60 * 24 * 30,
-    remotePatterns: [{ protocol: 'https', hostname: 'cdn.sanity.io' }],
   },
   experimental: {
     optimizePackageImports: ['lucide-react', 'framer-motion'],
   },
-  serverExternalPackages: ['@sanity/vision', '@prisma/client', 'prisma'],
+  serverExternalPackages: ['@prisma/client', 'prisma'],
   async headers() {
     const marketingCsp = [
       "default-src 'self'",
@@ -30,25 +29,11 @@ const nextConfig: NextConfig = {
       "form-action 'self'",
       "frame-ancestors 'self'",
       "object-src 'none'",
-      "img-src 'self' data: blob: https://cdn.sanity.io",
+      "img-src 'self' data: blob:",
       "font-src 'self' data:",
       "style-src 'self' 'unsafe-inline'",
       "script-src 'self' 'unsafe-inline'",
-      "connect-src 'self' https://*.sanity.io https://cdn.sanity.io",
-    ].join('; ');
-
-    const studioCsp = [
-      "default-src 'self'",
-      "base-uri 'self'",
-      "form-action 'self'",
-      "frame-ancestors 'self'",
-      "object-src 'none'",
-      "img-src 'self' data: blob: https://cdn.sanity.io",
-      "font-src 'self' data:",
-      "style-src 'self' 'unsafe-inline'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-      "connect-src 'self' https://*.sanity.io https://cdn.sanity.io wss://*.sanity.io",
-      "frame-src 'self' https://*.sanity.io",
+      "connect-src 'self'",
     ].join('; ');
 
     const extra =
@@ -63,23 +48,12 @@ const nextConfig: NextConfig = {
 
     return [
       {
-        source: '/studio/:path*',
-        headers: [
-          ...baseSecurityHeaders,
-          ...extra,
-          { key: 'Content-Security-Policy', value: studioCsp },
-        ],
-      },
-      {
         source: '/:path*',
         headers:
           process.env.NODE_ENV === 'production'
             ? [
                 ...baseSecurityHeaders,
-                {
-                  key: 'Strict-Transport-Security',
-                  value: 'max-age=63072000; includeSubDomains; preload',
-                },
+                ...extra,
                 { key: 'Content-Security-Policy', value: marketingCsp },
               ]
             : baseSecurityHeaders,

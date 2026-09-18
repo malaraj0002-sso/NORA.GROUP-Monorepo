@@ -1,6 +1,6 @@
 /**
  * App-wide constants.
- * Contact defaults match the client flyer; Sanity Site settings can override at runtime.
+ * Contact defaults match the client flyer; PostgreSQL site settings can override at runtime.
  */
 
 export const LOCALES = ['he', 'ar', 'en', 'ru'] as const;
@@ -36,7 +36,7 @@ function publicSiteUrl(): string {
 
 export const SITE_URL = publicSiteUrl();
 
-/** Flyer defaults — also seeded into Sanity Site settings */
+/** Flyer defaults — also seeded into PostgreSQL site settings */
 export const CONTACT_DEFAULTS = {
   brandName: 'Nora Group',
   phoneDisplay: '052-465-9510',

@@ -4,7 +4,7 @@
 
  * Hosted in /public/images so the site never depends on remote CDNs.
 
- * Replace anytime via Sanity Studio uploads.
+ * Replace anytime via Dashboard media uploads.
 
  */
 

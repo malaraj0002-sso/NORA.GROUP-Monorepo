@@ -1,11 +1,11 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { assertSameOrigin, jsonError, requirePermission, requireSession } from '@/lib/server/http';
 import { prisma } from '@/lib/db/prisma';
 import { writeAuditLog } from '@/lib/server/audit';
+import { ensureLocalMediaDirectory } from '@/lib/storage/localMedia';
 
 const MAX_BYTES = 8 * 1024 * 1024;
-const MEDIA_DIR = path.join(process.cwd(), '.data', 'media');
 
 function sniffType(bytes: Uint8Array): { mime: string; ext: string } | null {
   if (bytes.length < 12) return null;
@@ -62,9 +62,9 @@ export async function POST(request: Request) {
         alt: { he: '', ar: '', en: '', ru: '' },
       },
     });
-    await mkdir(MEDIA_DIR, { recursive: true });
+    const mediaDir = await ensureLocalMediaDirectory();
     const objectKey = `${media.id}.${sniffed.ext}`;
-    await writeFile(path.join(MEDIA_DIR, objectKey), buffer);
+    await writeFile(path.join(mediaDir, objectKey), buffer);
     const url = `/api/media/${media.id}`;
     const updated = await prisma.media.update({
       where: { id: media.id },
