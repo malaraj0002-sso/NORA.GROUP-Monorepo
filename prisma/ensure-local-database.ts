@@ -36,7 +36,7 @@ main().catch((error: unknown) => {
   process.stderr.write(`${message}\n`);
   if (/P1001|Can't reach database server|ECONNREFUSED/i.test(message)) {
     process.stderr.write(
-      'PostgreSQL is not listening on localhost:5432.\nOn Linux: sudo systemctl start postgresql\nIf it is not installed: sudo apt install postgresql postgresql-contrib\nThen set DATABASE_URL in .env and run: pnpm bootstrap\n',
+      'PostgreSQL is not listening on localhost:5432.\nOn Linux, if apt says dpkg was interrupted: sudo dpkg --configure -a\nThen: sudo apt-get install -y postgresql postgresql-contrib && sudo systemctl start postgresql\nOr run: bash scripts/fix-linux-dev.sh\nThen set DATABASE_URL in .env and run: pnpm bootstrap\n',
     );
   }
   process.exitCode = 1;

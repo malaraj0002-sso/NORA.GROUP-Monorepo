@@ -1,0 +1,23 @@
+# Optional local PostgreSQL. Not required if the OS package is installed.
+# Start with: docker compose up -d --wait
+# Credentials come from gitignored .env (POSTGRES_PASSWORD / DATABASE_URL). Do not put secrets here.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: nora
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: nora_group
+    volumes:
+      - nora_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U nora -d nora_group']
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+volumes:
+  nora_pgdata:

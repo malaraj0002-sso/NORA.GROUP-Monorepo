@@ -509,5 +509,16 @@ HomeView markup (`<Reveal><Link>`), locale routing, and Sanity data were not cha
 
 **Not in this phase:** Prisma User/Session auth (Owner still from env); Cloudflare R2; production deploy; live AI translation.
 
+---
+
+## 2026-09-18 — Local Postgres install recovery (Linux Mint dpkg)
+
+**Branch:** `cursor/postgres-website-cutover-89ec`  
+**Problem:** Dashboard Homepage stayed empty because `localhost:5432` was down. `apt` could not install PostgreSQL: `dpkg was interrupted`. `postgresql.service` was missing. Bracketed-paste junk (`^[[200~`) also broke `sudo`.
+
+**Changes:** `scripts/fix-linux-dev.sh` runs `sudo dpkg --configure -a` before apt, starts `postgresql` or `postgresql@16-main`, and falls back to `docker compose` if the OS package still is not listening. `LOCAL_SETUP.md` documents the four repair commands. Dashboard copy now says empty fields are placeholders, not live site content.
+
+**Not verified on the laptop:** `sudo dpkg --configure -a` and Postgres install require the machine owner's password. This agent cannot complete those commands remotely.
+
 
 
