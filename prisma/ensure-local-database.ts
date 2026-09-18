@@ -34,5 +34,10 @@ async function main() {
 main().catch((error: unknown) => {
   const message = error instanceof Error ? error.message : 'Could not ensure local database';
   process.stderr.write(`${message}\n`);
+  if (/P1001|Can't reach database server|ECONNREFUSED/i.test(message)) {
+    process.stderr.write(
+      'PostgreSQL is not listening on localhost:5432.\nOn Linux: sudo systemctl start postgresql\nIf it is not installed: sudo apt install postgresql postgresql-contrib\nThen set DATABASE_URL in .env and run: pnpm bootstrap\n',
+    );
+  }
   process.exitCode = 1;
 });

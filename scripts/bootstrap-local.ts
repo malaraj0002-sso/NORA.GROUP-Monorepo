@@ -102,16 +102,16 @@ function main(): void {
 
   process.stdout.write('Wrote apps/web/.env.local and apps/Dashboard/.env.local from root .env\n');
 
-  if (!values.DATABASE_URL.trim()) {
+  if (!values.DATABASE_URL.trim() || /USER:PASSWORD|\/\/USER:/.test(values.DATABASE_URL)) {
     process.stdout.write(
-      'Set DATABASE_URL in .env to postgresql://USER:PASSWORD@localhost:5432/nora_group then run: pnpm bootstrap\n',
+      'Edit .env and set DATABASE_URL to a real local Postgres login, e.g. postgresql://postgres:your-password@localhost:5432/nora_group\nThen run: pnpm bootstrap\n',
     );
     process.exitCode = 1;
     return;
   }
 
   process.stdout.write('Running pnpm setup:local (generate, database, migrate, seed)\n');
-  const result = spawnSync('pnpm', ['setup:local'], { cwd: root, stdio: 'inherit', shell: true });
+  const result = spawnSync('pnpm', ['setup:local'], { cwd: root, stdio: 'inherit' });
   process.exitCode = result.status ?? 1;
 }
 
