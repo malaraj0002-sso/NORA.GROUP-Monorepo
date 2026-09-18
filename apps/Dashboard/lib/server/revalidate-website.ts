@@ -1,5 +1,3 @@
-import 'server-only';
-
 /**
  * Tell the public website to drop cached SiteContent after a CMS write.
  * Fail closed and silent when URL/secret are unset (local Dashboard-only).
