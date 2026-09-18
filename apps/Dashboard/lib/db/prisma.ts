@@ -3,15 +3,21 @@ import { ensureDatabaseUrl } from './loadDatabaseUrl';
 
 const globalForPrisma = globalThis as unknown as { noraDashboardPrisma?: PrismaClient };
 
-function createClient(): PrismaClient {
-  ensureDatabaseUrl();
-  return new PrismaClient({
-    log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
-  });
+function getClient(): PrismaClient {
+  if (!globalForPrisma.noraDashboardPrisma) {
+    ensureDatabaseUrl();
+    globalForPrisma.noraDashboardPrisma = new PrismaClient({
+      log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+    });
+  }
+  return globalForPrisma.noraDashboardPrisma;
 }
 
-export const prisma = globalForPrisma.noraDashboardPrisma ?? createClient();
-
-if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.noraDashboardPrisma = prisma;
-}
+/** Lazy so `/login` can import server modules without constructing Prisma. */
+export const prisma = new Proxy({} as PrismaClient, {
+  get(_target, prop, receiver) {
+    const client = getClient();
+    const value = Reflect.get(client, prop, receiver);
+    return typeof value === 'function' ? value.bind(client) : value;
+  },
+});
