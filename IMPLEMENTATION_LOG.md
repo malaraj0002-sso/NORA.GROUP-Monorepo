@@ -518,7 +518,14 @@ HomeView markup (`<Reveal><Link>`), locale routing, and Sanity data were not cha
 
 **Changes:** `scripts/fix-linux-dev.sh` runs `sudo dpkg --configure -a` before apt, starts `postgresql` or `postgresql@16-main`, and falls back to `docker compose` if the OS package still is not listening. `LOCAL_SETUP.md` documents the four repair commands. Dashboard copy now says empty fields are placeholders, not live site content.
 
-**Not verified on the laptop:** `sudo dpkg --configure -a` and Postgres install require the machine owner's password. This agent cannot complete those commands remotely.
+**Not verified on the laptop:** `sudo dpkg --configure -a` and Postgres install require the machine owner's password. This agent cannot complete those commands remotely. The NVIDIA DKMS configure was interrupted by the operator; a colleague is expected to finish `dpkg`, install Postgres, and seed.
+
+---
+
+## 2026-09-18 — Colleague handoff README
+
+**Branch:** `cursor/colleague-handoff-readme-89ec` (from `cursor/postgres-website-cutover-89ec`)  
+**Change:** Added root `README.md` describing what already changed, local steps for the next person, and remaining production work. No application code in this commit. Secrets were not added.
 
 
 
