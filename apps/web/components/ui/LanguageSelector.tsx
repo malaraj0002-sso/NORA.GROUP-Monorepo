@@ -22,7 +22,7 @@ export function LanguageSelector({ light = false }: { light?: boolean }) {
   }, []);
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="relative shrink-0">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}

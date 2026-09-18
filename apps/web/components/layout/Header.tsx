@@ -56,7 +56,7 @@ export function Header() {
   );
 
   const linkClass = (href: string) =>
-    `relative z-10 whitespace-nowrap rounded-lg px-2.5 py-2.5 text-sm font-semibold transition-colors xl:px-3.5 xl:text-base ${
+    `relative z-10 whitespace-nowrap rounded-lg px-2.5 py-2.5 text-sm font-semibold transition-colors ${
       transparent
         ? 'text-warm-50/90 hover:bg-white/10 hover:text-warm-50'
         : 'text-foreground hover:bg-foreground/10 hover:text-foreground'
@@ -73,18 +73,15 @@ export function Header() {
       >
         <div className="container-luxury grid h-20 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 sm:h-24 sm:gap-4">
           
-          {/* حاوية اللوجو الرئيسية مع ضبط الحجم والمرونة */}
           <div className="relative z-20 flex shrink-0 items-center py-2">
-            <div className="flex items-center transition-transform duration-300 hover:scale-105">
-              <BrandLockup
-                logoUrl={logo}
-                brandName={settings.brandName}
-                variant={transparent ? 'transparent' : 'light'}
-              />
-            </div>
+            <BrandLockup
+              logoUrl={logo}
+              brandName={settings.brandName}
+              variant={transparent ? 'transparent' : 'light'}
+            />
           </div>
 
-          <nav className="relative z-10 hidden min-w-0 items-center justify-center gap-1 overflow-x-auto overscroll-x-contain lg:flex xl:gap-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <nav className="relative z-10 hidden min-w-0 items-center justify-center gap-1 xl:flex">
             {desktopItems.map((item) => (
               <Link key={item.href} href={item.href} className={linkClass(item.href)}>
                 {item.label}
@@ -99,14 +96,14 @@ export function Header() {
               href={whatsapp}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-whatsapp hidden !min-h-12 !px-4 !py-2.5 text-base xl:inline-flex"
+              className="btn-whatsapp hidden !min-h-12 !px-4 !py-2.5 text-base 2xl:inline-flex"
             >
               <MessageCircle className="h-5 w-5" />
               {nav.whatsapp}
             </a>
             <button
               type="button"
-              className={`inline-flex min-h-12 min-w-12 items-center justify-center rounded-lg lg:hidden ${
+              className={`inline-flex min-h-12 min-w-12 items-center justify-center rounded-lg xl:hidden ${
                 transparent ? 'text-warm-50' : 'text-foreground'
               }`}
               onClick={() => setMenuOpen(true)}
@@ -120,7 +117,7 @@ export function Header() {
 
       {/* القائمة الجانبية في الشاشات الصغيرة */}
       {menuOpen && (
-        <div className="fixed inset-0 z-[60] overflow-y-auto bg-charcoal-950/95 text-warm-50 lg:hidden">
+        <div className="fixed inset-0 z-[60] overflow-y-auto bg-charcoal-950/95 text-warm-50 xl:hidden">
           <div className="container-luxury flex h-20 items-center justify-between sm:h-24">
             <div className="flex items-center">
               <BrandLockup
