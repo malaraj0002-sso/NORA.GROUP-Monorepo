@@ -68,7 +68,7 @@ export function Header() {
         className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
           transparent
             ? 'bg-gradient-to-b from-black/60 via-black/20 to-transparent'
-            : 'border-b border-border bg-background/95 shadow-sm backdrop-blur-md'
+            : 'border-b border-border site-chrome shadow-sm'
         }`}
       >
         <div className="container-luxury grid h-20 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 sm:h-24 sm:gap-4">

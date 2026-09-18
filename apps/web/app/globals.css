@@ -114,6 +114,20 @@
     overflow: hidden;
   }
 
+  /* Opaque chrome surface. Do not use bg-background/95 — Tailwind cannot
+     apply opacity modifiers to CSS-variable colors, so that class paints nothing. */
+  .site-chrome {
+    background-color: var(--ng-surface);
+  }
+
+  /* QR must stay a light high-contrast plate in both themes. color-scheme
+     light prevents UA darkening of the JPEG. */
+  .qr-plate {
+    color-scheme: light;
+    background-color: #ffffff;
+    isolation: isolate;
+  }
+
   .reveal {
     opacity: 0;
     transform: translateY(30px);

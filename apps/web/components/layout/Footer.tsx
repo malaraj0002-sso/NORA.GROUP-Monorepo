@@ -171,7 +171,7 @@ export function Footer() {
 
           {/* صورة الـ QR Code الفاخرة */}
           <div className="mt-5 flex flex-col items-start gap-2">
-            <div className="overflow-hidden rounded-xl border border-gold-500/30 bg-white/95 p-2 shadow-lg backdrop-blur-md transition-transform duration-300 hover:scale-105">
+            <div className="qr-plate shrink-0 overflow-hidden rounded-xl border border-gold-500/30 p-2 shadow-lg">
               <Image
                 src={mediaSrc(settings.qrUrl, '/qr.jpg')}
                 alt="WhatsApp QR Code"
