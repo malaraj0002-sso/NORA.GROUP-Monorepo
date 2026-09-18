@@ -21,9 +21,23 @@ function parseEnvFile(contents: string): Record<string, string> {
   return parsed;
 }
 
+function isUsableDatabaseUrl(raw: string | undefined): boolean {
+  const value = raw?.trim();
+  if (!value) return false;
+  if (/USER:PASSWORD|\/\/USER[:@]/i.test(value)) return false;
+  try {
+    const parsed = new URL(value);
+    if (parsed.protocol !== 'postgresql:' && parsed.protocol !== 'postgres:') return false;
+    return Boolean(parsed.username);
+  } catch {
+    return false;
+  }
+}
+
 function candidateEnvPaths(): string[] {
   const cwd = process.cwd();
   return [
+    resolve(cwd, '.env.local'),
     resolve(cwd, '.env'),
     resolve(cwd, '../../.env'),
     resolve(cwd, '../.env'),
@@ -57,21 +71,21 @@ export function assertLocalPostgresUrl(url: string): string {
 
 /** Loads gitignored root/app .env DATABASE_URL if needed. Never logs the URL. */
 export function loadLocalDatabaseUrl(): string {
-  if (!process.env.DATABASE_URL?.trim()) {
+  if (!isUsableDatabaseUrl(process.env.DATABASE_URL)) {
     for (const path of candidateEnvPaths()) {
       if (!existsSync(path)) continue;
       const parsed = parseEnvFile(readFileSync(path, 'utf8'));
-      if (parsed.DATABASE_URL?.trim()) {
+      if (isUsableDatabaseUrl(parsed.DATABASE_URL)) {
         process.env.DATABASE_URL = parsed.DATABASE_URL.trim();
         break;
       }
     }
   }
   const url = process.env.DATABASE_URL?.trim();
-  if (!url) {
+  if (!isUsableDatabaseUrl(url)) {
     throw new Error(
       'DATABASE_URL is not set. Create a gitignored root .env with a LOCAL PostgreSQL URL (do not use production).',
     );
   }
-  return assertLocalPostgresUrl(url);
+  return assertLocalPostgresUrl(url as string);
 }

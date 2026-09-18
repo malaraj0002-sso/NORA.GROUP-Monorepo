@@ -350,15 +350,59 @@ async function patchResource(input: MutationInput): Promise<ApplyMutationResult>
   if (input.resource === 'hero') {
     const home = await prisma.homePage.findUnique({ where: { id: 'default' } });
     if (!home) return { ok: false, error: 'Home page not found', status: 404 };
-    const mediaIds = await resolveMediaIds(input.data.assetIds);
-    await prisma.$transaction(async (tx: Tx) => {
-      await tx.homeHeroMedia.deleteMany({ where: { homePageId: 'default' } });
-      if (mediaIds.length) {
+
+    const submitted = input.data.assetIds.map((id) => id.trim()).filter(Boolean);
+    const explicitClear = input.data.clear === true;
+
+    if (submitted.length === 0 && !explicitClear) {
+      return {
+        ok: false,
+        error: 'Hero media list is empty. Existing slides were not changed.',
+        status: 400,
+      };
+    }
+
+    if (submitted.length === 0 && explicitClear) {
+      await prisma.$transaction(async (tx: Tx) => {
+        await tx.homeHeroMedia.deleteMany({ where: { homePageId: 'default' } });
+      });
+      return { ok: true, id: 'default', revalidated: false };
+    }
+
+    try {
+      await prisma.$transaction(async (tx: Tx) => {
+        const mediaIds: string[] = [];
+        for (const id of submitted) {
+          const byId = await tx.media.findUnique({ where: { id } });
+          if (byId) {
+            if (!mediaIds.includes(byId.id)) mediaIds.push(byId.id);
+            continue;
+          }
+          const byKey = await tx.media.findFirst({ where: { objectKey: id } });
+          if (byKey && !mediaIds.includes(byKey.id)) mediaIds.push(byKey.id);
+        }
+        if (mediaIds.length === 0) {
+          throw new Error('HERO_MEDIA_UNRESOLVED');
+        }
+        await tx.homeHeroMedia.deleteMany({ where: { homePageId: 'default' } });
         await tx.homeHeroMedia.createMany({
-          data: mediaIds.map((mediaId, index) => ({ homePageId: 'default', mediaId, sortOrder: index })),
+          data: mediaIds.map((mediaId, index) => ({
+            homePageId: 'default',
+            mediaId,
+            sortOrder: index,
+          })),
         });
+      });
+    } catch (error) {
+      if (error instanceof Error && error.message === 'HERO_MEDIA_UNRESOLVED') {
+        return {
+          ok: false,
+          error: 'None of the submitted media IDs exist. Existing Hero media was not changed.',
+          status: 400,
+        };
       }
-    });
+      throw error;
+    }
     return { ok: true, id: 'default', revalidated: false };
   }
 

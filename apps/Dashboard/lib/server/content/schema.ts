@@ -181,6 +181,8 @@ export const mutationSchema = z.discriminatedUnion('resource', [
     op: z.literal('patch'),
     data: z.object({
       assetIds: z.array(mediaIdSchema).max(20),
+      /** Explicit empty save. Empty assetIds without this flag is rejected. */
+      clear: z.boolean().optional(),
     }),
   }),
   z.object({

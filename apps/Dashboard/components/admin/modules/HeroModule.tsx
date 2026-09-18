@@ -47,8 +47,8 @@ export function HeroModule() {
               onSave={async () => {
                 const assetIds = [...heroSlides]
                   .sort((a, b) => a.order - b.order)
-                  .map((s) => s.id)
-                  .filter((id) => id.startsWith('image-'));
+                  .map((s) => s.id.trim())
+                  .filter((id) => /^[a-zA-Z0-9._-]+$/.test(id));
                 const result = await postCms({ resource: 'hero', op: 'patch', data: { assetIds } });
                 if (!result.ok) throw new Error(result.error);
               }}

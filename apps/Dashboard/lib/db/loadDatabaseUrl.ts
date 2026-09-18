@@ -1,6 +1,19 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
+function isUsableDatabaseUrl(raw: string | undefined): boolean {
+  const value = raw?.trim();
+  if (!value) return false;
+  if (/USER:PASSWORD|\/\/USER[:@]/i.test(value)) return false;
+  try {
+    const parsed = new URL(value);
+    if (parsed.protocol !== 'postgresql:' && parsed.protocol !== 'postgres:') return false;
+    return Boolean(parsed.username);
+  } catch {
+    return false;
+  }
+}
+
 function parseEnvFile(contents: string): Record<string, string> {
   const parsed: Record<string, string> = {};
   for (const line of contents.split(/\r?\n/)) {
@@ -23,19 +36,23 @@ function parseEnvFile(contents: string): Record<string, string> {
 
 /** Load DATABASE_URL from process env or gitignored .env files. Never logs the URL. */
 export function ensureDatabaseUrl(): string {
-  if (!process.env.DATABASE_URL?.trim()) {
-    for (const path of [resolve(process.cwd(), '.env'), resolve(process.cwd(), '../../.env')]) {
+  if (!isUsableDatabaseUrl(process.env.DATABASE_URL)) {
+    for (const path of [
+      resolve(process.cwd(), '.env.local'),
+      resolve(process.cwd(), '.env'),
+      resolve(process.cwd(), '../../.env'),
+    ]) {
       if (!existsSync(path)) continue;
       const parsed = parseEnvFile(readFileSync(path, 'utf8'));
-      if (parsed.DATABASE_URL?.trim()) {
+      if (isUsableDatabaseUrl(parsed.DATABASE_URL)) {
         process.env.DATABASE_URL = parsed.DATABASE_URL.trim();
         break;
       }
     }
   }
   const url = process.env.DATABASE_URL?.trim();
-  if (!url) {
+  if (!isUsableDatabaseUrl(url)) {
     throw new Error('DATABASE_URL is not set');
   }
-  return url;
+  return url as string;
 }
