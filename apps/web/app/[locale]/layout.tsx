@@ -100,6 +100,14 @@ export default async function LocaleLayout({
       dir={dir}
       className={`${fontClass}${locale === 'ar' ? ' font-arabic' : locale === 'he' ? ' font-hebrew' : ''}`}
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{if(localStorage.getItem('nora-theme')==='dark')document.documentElement.classList.add('dark')}catch(e){}})();",
+          }}
+        />
+      </head>
       <body className="min-h-screen overflow-x-hidden">
         <NextIntlClientProvider messages={messages}>
           <SiteProvider chrome={toChrome(content, locale)}>

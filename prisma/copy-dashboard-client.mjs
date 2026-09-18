@@ -1,16 +1,47 @@
-import { cpSync, existsSync, readdirSync, rmSync } from 'node:fs';
-import { join } from 'node:path';
+import { cpSync, existsSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 
-const pnpmDir = join(process.cwd(), 'node_modules', '.pnpm');
-if (!existsSync(pnpmDir)) process.exit(0);
+const root = process.cwd();
+const pnpmDir = join(root, 'node_modules', '.pnpm');
+if (!existsSync(pnpmDir)) {
+  process.stderr.write('[prisma] node_modules/.pnpm not found; run pnpm install\n');
+  process.exit(1);
+}
 
-const dirs = readdirSync(pnpmDir);
-const srcName = dirs.find((name) => name.startsWith('@prisma+client@6.16.3_') && name.includes('typescript@5.9.3'));
-const dstName = dirs.find((name) => name.startsWith('@prisma+client@6.16.3_') && name.includes('typescript@5.2.2'));
-if (!srcName || !dstName) process.exit(0);
+function hasQueryEngine(dir) {
+  if (!existsSync(dir)) return false;
+  return readdirSync(dir).some(
+    (name) =>
+      name.includes('query_engine') ||
+      name.includes('libquery_engine') ||
+      name.includes('query-engine') ||
+      name.endsWith('.node'),
+  );
+}
 
-const from = join(pnpmDir, srcName, 'node_modules', '.prisma', 'client');
-const to = join(pnpmDir, dstName, 'node_modules', '.prisma', 'client');
-if (!existsSync(from)) process.exit(0);
-rmSync(to, { recursive: true, force: true });
-cpSync(from, to, { recursive: true });
+const clientDirs = readdirSync(pnpmDir).filter((name) => name.startsWith('@prisma+client@6.16.3'));
+const generated = clientDirs
+  .map((name) => join(pnpmDir, name, 'node_modules', '.prisma', 'client'))
+  .filter(hasQueryEngine);
+
+if (generated.length === 0) {
+  process.stderr.write('[prisma] generated client with query engine not found; run prisma generate\n');
+  process.exit(1);
+}
+
+const source = generated[0];
+const targets = new Set(
+  clientDirs.map((name) => join(pnpmDir, name, 'node_modules', '.prisma', 'client')),
+);
+targets.add(join(root, 'apps/Dashboard/node_modules/.prisma/client'));
+targets.add(join(root, 'apps/web/node_modules/.prisma/client'));
+targets.add(join(root, 'node_modules/.prisma/client'));
+
+for (const to of targets) {
+  if (to === source) continue;
+  mkdirSync(dirname(to), { recursive: true });
+  rmSync(to, { recursive: true, force: true });
+  cpSync(source, to, { recursive: true });
+}
+
+process.stdout.write(`Copied Prisma client to ${targets.size} locations\n`);

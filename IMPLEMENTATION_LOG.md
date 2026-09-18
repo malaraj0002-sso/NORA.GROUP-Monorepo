@@ -498,5 +498,34 @@ HomeView markup (`<Reveal><Link>`), locale routing, and Sanity data were not cha
 - Production `.next` from this build; start `pnpm --filter @nora/web dev` again before local UI work
 - Blog / legal / 404 / detail routes still need a visual pass
 
+---
+
+## 2026-09-18 — Website PostgreSQL cutover (Sanity removed)
+
+**Branch:** `cursor/postgres-website-cutover-89ec`  
+**Scope:** Public website reads PostgreSQL. Dashboard CMS writes already used Prisma. Sanity Studio, GROQ, and `next-sanity` removed. Seed now includes the existing marketing catalog (projects, materials, testimonials, blog, FAQ).
+
+**Also added:** shared `storage/media` for Dashboard uploads; public `GET /api/media/[id]` on the website; `REVALIDATE_SECRET` + `WEBSITE_REVALIDATE_URL` after CMS saves; blocking theme script to reduce dark-mode flash; `pnpm setup:local` and `LOCAL_SETUP.md`.
+
+**Not in this phase:** Prisma User/Session auth (Owner still from env); Cloudflare R2; production deploy; live AI translation.
+
+---
+
+## 2026-09-18 — Local Postgres install recovery (Linux Mint dpkg)
+
+**Branch:** `cursor/postgres-website-cutover-89ec`  
+**Problem:** Dashboard Homepage stayed empty because `localhost:5432` was down. `apt` could not install PostgreSQL: `dpkg was interrupted`. `postgresql.service` was missing. Bracketed-paste junk (`^[[200~`) also broke `sudo`.
+
+**Changes:** `scripts/fix-linux-dev.sh` runs `sudo dpkg --configure -a` before apt, starts `postgresql` or `postgresql@16-main`, and falls back to `docker compose` if the OS package still is not listening. `LOCAL_SETUP.md` documents the four repair commands. Dashboard copy now says empty fields are placeholders, not live site content.
+
+**Not verified on the laptop:** `sudo dpkg --configure -a` and Postgres install require the machine owner's password. This agent cannot complete those commands remotely. The NVIDIA DKMS configure was interrupted by the operator; a colleague is expected to finish `dpkg`, install Postgres, and seed.
+
+---
+
+## 2026-09-18 — Colleague handoff README
+
+**Branch:** `cursor/colleague-handoff-readme-89ec` (from `cursor/postgres-website-cutover-89ec`)  
+**Change:** Added root `README.md` describing what already changed, local steps for the next person, and remaining production work. No application code in this commit. Secrets were not added.
+
 
 

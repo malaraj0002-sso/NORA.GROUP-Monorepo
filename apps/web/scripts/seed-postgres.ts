@@ -472,6 +472,152 @@ async function assertNoDoorService(prisma: PrismaClient) {
   }
 }
 
+async function seedCatalog(prisma: PrismaClient) {
+  for (const [index, material] of seedContent.materials.entries()) {
+    const imageId = material.image
+      ? await upsertLocalMedia(prisma, mediaId('material', material.slug), material.image, material.name)
+      : null;
+    const row = await prisma.material.upsert({
+      where: { slug: material.slug },
+      create: {
+        slug: material.slug,
+        name: material.name,
+        description: material.description,
+        characteristics: material.characteristics,
+        applications: material.applications,
+        finishes: material.finishes,
+        published: material.visible,
+        sortOrder: index,
+      },
+      update: {
+        name: material.name,
+        description: material.description,
+        characteristics: material.characteristics,
+        applications: material.applications,
+        finishes: material.finishes,
+        published: material.visible,
+        sortOrder: index,
+      },
+    });
+    await prisma.materialMedia.deleteMany({ where: { materialId: row.id } });
+    if (imageId) {
+      await prisma.materialMedia.create({
+        data: { materialId: row.id, mediaId: imageId, sortOrder: 0 },
+      });
+    }
+  }
+
+  for (const [index, project] of seedContent.projects.entries()) {
+    const row = await prisma.project.upsert({
+      where: { slug: project.slug },
+      create: {
+        slug: project.slug,
+        title: project.title,
+        description: project.description,
+        category: project.category,
+        woodTypes: project.materials,
+        published: project.visible,
+        sortOrder: index,
+      },
+      update: {
+        title: project.title,
+        description: project.description,
+        category: project.category,
+        woodTypes: project.materials,
+        published: project.visible,
+        sortOrder: index,
+      },
+    });
+    await prisma.projectMedia.deleteMany({ where: { projectId: row.id } });
+    for (const [imageIndex, url] of project.images.entries()) {
+      const imageId = await upsertLocalMedia(
+        prisma,
+        mediaId('project', `${project.slug}-${imageIndex}`),
+        url,
+        project.title,
+      );
+      await prisma.projectMedia.create({
+        data: { projectId: row.id, mediaId: imageId, sortOrder: imageIndex },
+      });
+    }
+  }
+
+  for (const [index, item] of seedContent.testimonials.entries()) {
+    await prisma.testimonial.upsert({
+      where: { id: item.id },
+      create: {
+        id: item.id,
+        name: item.name,
+        rating: item.rating,
+        review: item.review,
+        project: item.project,
+        published: item.visible,
+        sortOrder: index,
+      },
+      update: {
+        name: item.name,
+        rating: item.rating,
+        review: item.review,
+        project: item.project,
+        published: item.visible,
+        sortOrder: index,
+      },
+    });
+  }
+
+  for (const post of seedContent.blogPosts) {
+    const imageId = post.image
+      ? await upsertLocalMedia(prisma, mediaId('blog', post.slug), post.image, post.title)
+      : null;
+    const publishedAt = post.date ? new Date(`${post.date}T00:00:00.000Z`) : null;
+    await prisma.blogPost.upsert({
+      where: { slug: post.slug },
+      create: {
+        slug: post.slug,
+        title: post.title,
+        excerpt: post.excerpt,
+        content: post.content,
+        category: post.category,
+        author: post.author,
+        published: post.visible,
+        publishedAt,
+        featuredMediaId: imageId,
+      },
+      update: {
+        title: post.title,
+        excerpt: post.excerpt,
+        content: post.content,
+        category: post.category,
+        author: post.author,
+        published: post.visible,
+        publishedAt,
+        featuredMediaId: imageId,
+      },
+    });
+  }
+
+  for (const [index, item] of seedContent.faq.entries()) {
+    await prisma.faqItem.upsert({
+      where: { id: item.id },
+      create: {
+        id: item.id,
+        category: item.category,
+        question: item.question,
+        answer: item.answer,
+        published: item.visible,
+        sortOrder: index,
+      },
+      update: {
+        category: item.category,
+        question: item.question,
+        answer: item.answer,
+        published: item.visible,
+        sortOrder: index,
+      },
+    });
+  }
+}
+
 async function main() {
   const url = loadLocalDatabaseUrl();
   const { host, database } = describeLocalDatabase(url);
@@ -483,11 +629,11 @@ async function main() {
     await seedUiCopy(prisma);
     await seedSettingsAndPages(prisma);
     await seedServices(prisma);
+    await seedCatalog(prisma);
     await assertNoDoorService(prisma);
     process.stdout.write(
-      `Seed complete: roles=${Object.keys(ROLE_PERMISSIONS).join(',')} permissions=${PERMISSIONS.map((item) => item.code).join(',')} services=${SERVICE_SLUGS.join(',')}\n`,
+      `Seed complete: roles=${Object.keys(ROLE_PERMISSIONS).join(',')} permissions=${PERMISSIONS.map((item) => item.code).join(',')} services=${SERVICE_SLUGS.join(',')} projects=${seedContent.projects.length} materials=${seedContent.materials.length}\n`,
     );
-    process.stdout.write('Not seeded: users, projects, testimonials, blog, faq (no fake customers or business projects).\n');
   } finally {
     await prisma.$disconnect();
   }

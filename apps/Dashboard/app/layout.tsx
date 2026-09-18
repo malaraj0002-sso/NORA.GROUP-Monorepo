@@ -5,7 +5,6 @@ import { cookies } from 'next/headers';
 import { AppProviders } from './providers';
 import { getAuthSecret, readSession } from '@/lib/auth/session';
 import { emptyAdminData } from '@/lib/mock-data';
-import { emptyAdminBundle, readDashboardContent } from '@/lib/server/content/postgres/read';
 import { DEFAULT_UI_LANG, parseUiLang, UI_LANG_COOKIE, uiDir } from '@/lib/i18n/ui-lang';
 import { translate } from '@/lib/i18n/messages';
 
@@ -34,8 +33,8 @@ export default async function RootLayout({
     ? await readSession(cookieStore.get('nora_session')?.value, secret)
     : null;
   const content = session
-    ? await readDashboardContent()
-    : { ...emptyAdminBundle(), data: emptyAdminData, source: 'mock' as const };
+    ? await (await import('@/lib/server/content/postgres/read')).readDashboardContent()
+    : { source: 'mock' as const, data: emptyAdminData };
 
   return (
     <html lang={uiLang} dir={uiDir(uiLang)} suppressHydrationWarning>

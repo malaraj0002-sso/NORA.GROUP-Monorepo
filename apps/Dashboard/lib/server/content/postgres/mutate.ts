@@ -10,6 +10,7 @@ import { writeAuditLog } from '@/lib/server/audit';
 import type { MutationInput } from '@/lib/server/content/schema';
 import { rejectDoorMutation } from '@/lib/server/content/schema';
 import { resolveMediaIds } from '@/lib/server/content/postgres/media';
+import { revalidateWebsite } from '@/lib/server/revalidate-website';
 
 type Tx = Omit<
   typeof prisma,
@@ -64,21 +65,21 @@ export async function applyMutation(
       const result = await deleteResource(input.resource, input.id);
       if (!result.ok) return result;
       await audit(ctx, 'delete', input.resource, input.id);
-      return { ok: true, id: input.id, revalidated: false };
+      return { ok: true, id: input.id, revalidated: await revalidateWebsite() };
     }
 
     if (input.op === 'create') {
       const created = await createResource(input);
       if (!created.ok) return created;
       await audit(ctx, 'create', input.resource, created.id);
-      return { ok: true, id: created.id, revalidated: false };
+      return { ok: true, id: created.id, revalidated: await revalidateWebsite() };
     }
 
     if (input.op === 'patch') {
       const patched = await patchResource(input);
       if (!patched.ok) return patched;
       await audit(ctx, 'update', input.resource, patched.id);
-      return { ok: true, id: patched.id, revalidated: false };
+      return { ok: true, id: patched.id, revalidated: await revalidateWebsite() };
     }
 
     return { ok: false, error: 'Unsupported operation', status: 400 };

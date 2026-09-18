@@ -1,8 +1,9 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { jsonError } from '@/lib/server/http';
 import { prisma } from '@/lib/db/prisma';
 import { localMediaDirectory } from '@/lib/storage/localMedia';
+
+export const runtime = 'nodejs';
 
 export async function GET(
   _request: Request,
@@ -10,17 +11,17 @@ export async function GET(
 ) {
   const { id } = await context.params;
   if (!id || !/^[a-zA-Z0-9._-]+$/.test(id) || id.includes('..')) {
-    return jsonError('Invalid id', 400);
+    return new Response('Not found', { status: 404 });
   }
 
   const media = await prisma.media.findUnique({ where: { id } });
   if (!media?.objectKey || media.provider !== 'LOCAL') {
-    return jsonError('Not found', 404);
+    return new Response('Not found', { status: 404 });
   }
 
   const filename = path.basename(media.objectKey);
   if (!filename.includes('.')) {
-    return jsonError('Not found', 404);
+    return new Response('Not found', { status: 404 });
   }
 
   try {
@@ -32,6 +33,6 @@ export async function GET(
       },
     });
   } catch {
-    return jsonError('Not found', 404);
+    return new Response('Not found', { status: 404 });
   }
 }

@@ -4,17 +4,12 @@ import { images } from '@/lib/content/images';
 function isAllowedAssetUrl(src: string): boolean {
   if (src.startsWith('//') || src.includes('\\') || src.includes('..')) return false;
   if (src.startsWith('/') && !src.startsWith('//')) return true;
-  try {
-    const url = new URL(src);
-    return url.protocol === 'https:' && url.hostname === 'cdn.sanity.io';
-  } catch {
-    return false;
-  }
+  return false;
 }
 
 /**
  * Never pass an empty or attacker-controlled src to next/image.
- * Allows local /public paths and Sanity CDN only — blocks javascript:/data: URLs.
+ * Allows local /public paths and /api/media uploads only.
  */
 export function mediaSrc(src: string | undefined | null, fallback: string = images.hero1): string {
   if (typeof src !== 'string') return fallback;
