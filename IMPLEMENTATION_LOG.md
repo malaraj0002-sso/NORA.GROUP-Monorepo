@@ -498,5 +498,15 @@ HomeView markup (`<Reveal><Link>`), locale routing, and Sanity data were not cha
 - Production `.next` from this build; start `pnpm --filter @nora/web dev` again before local UI work
 - Blog / legal / 404 / detail routes still need a visual pass
 
+---
+
+## 2026-09-18 — Current-state audit (Sanity out of scope)
+
+**Branch:** documentation only (`CURRENT_STATE_AUDIT.md`). No application source, schema, or env changes.
+
+**Recorded owner decision:** Sanity will not be used. Website still reads Sanity-or-seed at runtime; Dashboard CMS already writes PostgreSQL. The two apps do not share a live store. Local `nora_group` CRUD was previously blocked by Prisma `P1010`.
+
+**Not done in this pass:** Website cutover, Sanity deletion, auth-to-Prisma, R2, live DB, browser tests, deploy.
+
 
 

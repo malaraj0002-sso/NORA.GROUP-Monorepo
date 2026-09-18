@@ -1,5 +1,7 @@
 # Final project report
 
+> **Stale relative to current `main` (18 Sep 2026).** This report describes 14 Sep work at `de76db4`. Later commits added Prisma, a Website PostgreSQL mapper (unwired), and Dashboard CMS on PostgreSQL (`99f8eb5`). For the live audit and the no-Sanity plan, use [`CURRENT_STATE_AUDIT.md`](./CURRENT_STATE_AUDIT.md).
+
 Date: 2026-09-14  
 Git HEAD (committed): `de76db4` — `chore: clean monorepo workspace and package management`  
 Working tree: **uncommitted** Phase 2B–16 foundation plus a hardening pass.  
