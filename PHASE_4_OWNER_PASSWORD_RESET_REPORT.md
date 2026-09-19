@@ -43,7 +43,7 @@ Update path: OS temp script (not in the repo) hashed with Dashboard `argon2@0.45
 | New login creates new session | **PASS** (cookie `nora_session` issued) |
 | Logout clears cookie | **PASS** |
 | Replay of logged-out cookie | **PASS** (401) |
-| Leftover test session after logout | One active row remained after the PowerShell logout client; it was then revoked. Active now = 0 |
+| Leftover test session after logout | **PASS** — PostgreSQL session `revokedAt` set; replay 401; active leftover sessions = 0 |
 
 ---
 
@@ -58,7 +58,7 @@ Update path: OS temp script (not in the repo) hashed with Dashboard `argon2@0.45
 | Unauthenticated `/api/users` | **PASS** (401) |
 | Fake cookie | **PASS** (401) |
 | `GET /login` | **PASS** (200) |
-| Authenticated `GET /` / `/api/content` / `/api/users` via PowerShell client | **NOT CONFIRMED** — login succeeded and a session cookie was issued; those follow-up GETs did not record HTTP 200 in the client |
+| Authenticated `GET /` / `/api/content` / `/api/users` | **PASS** — `GET /` 200 (no `/login` redirect); `GET /api/content` 200; `GET /api/users` 200 with safe fields only |
 
 ---
 
@@ -111,13 +111,11 @@ No dedicated password-change audit action exists. The audit system was not redes
 
 ## Final Status
 
-**VERIFIED WITH NOTES**
+**VERIFIED**
 
-Notes:
+Authenticated `GET /`, `GET /api/content`, and `GET /api/users` returned HTTP 200 with a PostgreSQL Owner session (`owner@localhost`, live role `owner`). Logout revoked that session. Active leftover sessions: 0.
 
-1. Live login with the operator-chosen password succeeded. Authenticated page/content/users GETs were not confirmed by the PowerShell HTTP client after that login.
-2. Logout reported a cleared cookie and replay 401; one Session row was still active afterward and was revoked.
-3. The previous Cursor temporary password was not available and was not tested.
+The previous Cursor temporary password remains unknown and was not tested. That does not affect this confirmation.
 
 Commit: **NO**  
 Push: **NO**
