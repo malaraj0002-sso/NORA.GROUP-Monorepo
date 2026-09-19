@@ -1,6 +1,7 @@
 import { authenticateUser } from '@/lib/auth/users';
-import { getAuthSecret, signSession } from '@/lib/auth/session';
+import { createDatabaseSession } from '@/lib/auth/session-store';
 import { applySessionCookie, assertSameOrigin, jsonError } from '@/lib/server/http';
+import { requestAuditContext, writeAuditLog } from '@/lib/server/audit';
 import { NextResponse } from 'next/server';
 
 const hits = new Map<string, number[]>();
@@ -27,8 +28,7 @@ export async function POST(request: Request) {
   if (!assertSameOrigin(request)) return jsonError('Invalid origin', 403);
   if (rateLimited(clientKey(request))) return jsonError('Too many attempts', 429);
 
-  const secret = getAuthSecret();
-  if (!secret) return jsonError('Authentication is not configured', 503);
+  const ctx = requestAuditContext(request);
 
   let payload: { email?: string; password?: string };
   try {
@@ -39,10 +39,31 @@ export async function POST(request: Request) {
     return jsonError('Invalid JSON', 400);
   }
 
-  const user = await authenticateUser(String(payload.email || ''), String(payload.password || ''));
-  if (!user) return jsonError('Invalid credentials', 401);
+  const email = String(payload.email || '');
+  const user = await authenticateUser(email, String(payload.password || ''));
+  if (!user) {
+    await writeAuditLog({
+      action: 'login_failed',
+      entity: 'auth',
+      metadata: { email: email.trim().toLowerCase().slice(0, 254) },
+      ...ctx,
+    });
+    return jsonError('Invalid credentials', 401);
+  }
 
-  const token = await signSession({ sub: user.id, email: user.email, role: user.role }, secret);
+  const { token } = await createDatabaseSession({
+    userId: user.id,
+    ...ctx,
+  });
+  await writeAuditLog({
+    actorId: user.id,
+    session: { sub: user.id, email: user.email, role: user.role, exp: Date.now() },
+    action: 'login',
+    entity: 'auth',
+    entityId: user.id,
+    ...ctx,
+  });
+
   const response = NextResponse.json({ ok: true, role: user.role });
   return applySessionCookie(response, token, process.env.NODE_ENV === 'production');
 }

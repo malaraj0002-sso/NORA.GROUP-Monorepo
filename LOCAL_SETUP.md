@@ -27,12 +27,13 @@ pnpm bootstrap
 pnpm dev
 ```
 
-`pnpm bootstrap` fills `AUTH_SECRET`, local Owner login, and copies env into both apps. Default Dashboard login (local only):
+`pnpm bootstrap` copies env into both apps and seeds CMS content. Dashboard login is a PostgreSQL `User`, not an environment password.
 
-- email: `owner@localhost`
-- password: `nora-local-owner`
+Create the first Owner once (the password is hashed and is not written to `.env`):
 
-Change those in `.env` and run `pnpm bootstrap` again if you want different credentials.
+```bash
+OWNER_BOOTSTRAP_EMAIL=owner@localhost OWNER_BOOTSTRAP_PASSWORD=******** pnpm bootstrap:owner
+```
 
 | App | URL |
 |---|---|

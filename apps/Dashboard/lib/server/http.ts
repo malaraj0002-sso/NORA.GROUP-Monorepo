@@ -1,7 +1,15 @@
 import { NextResponse } from 'next/server';
-import { getAuthSecret, readSession, sessionCookieOptions, SESSION_COOKIE, type Role, type Session } from '@/lib/auth/session';
+import {
+  readRawSessionCookie,
+  sessionCookieOptions,
+  SESSION_COOKIE,
+  type Role,
+  type Session,
+} from '@/lib/auth/session';
+import { resolveDatabaseSession } from '@/lib/auth/session-store';
 import { hasMinRole } from '@/lib/auth/rbac';
 import { roleHasPermission, type PermissionCode } from '@/lib/server/permissions';
+import { requestAuditContext, writeAuditLog } from '@/lib/server/audit';
 
 export function jsonError(message: string, status: number) {
   return NextResponse.json({ ok: false, error: message }, { status });
@@ -58,17 +66,7 @@ export function applySessionCookie(response: NextResponse, token: string | null,
 }
 
 export async function getSessionFromRequest(request: Request): Promise<Session | null> {
-  const secret = getAuthSecret();
-  if (!secret) return null;
-  const cookie = request.headers.get('cookie') || '';
-  const match = cookie.split(';').map((p) => p.trim()).find((p) => p.startsWith('nora_session='));
-  const raw = match?.slice('nora_session='.length);
-  if (!raw) return null;
-  try {
-    return await readSession(decodeURIComponent(raw), secret);
-  } catch {
-    return await readSession(raw, secret);
-  }
+  return resolveDatabaseSession(readRawSessionCookie(request.headers.get('cookie')));
 }
 
 export async function requireSession(request: Request): Promise<Session | NextResponse> {
@@ -85,8 +83,21 @@ export function requireRole(session: Session, min: Role): true | NextResponse {
 export async function requirePermission(
   session: Session,
   code: PermissionCode,
+  request?: Request,
 ): Promise<true | NextResponse> {
   const allowed = await roleHasPermission(session.role, code);
-  if (!allowed) return jsonError('Forbidden', 403);
+  if (!allowed) {
+    if (request) {
+      await writeAuditLog({
+        session,
+        action: 'authorization_denied',
+        entity: 'permission',
+        entityId: code,
+        metadata: { permission: code },
+        ...requestAuditContext(request),
+      });
+    }
+    return jsonError('Forbidden', 403);
+  }
   return true;
 }

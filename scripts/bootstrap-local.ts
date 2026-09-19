@@ -56,12 +56,9 @@ function main(): void {
   }
 
   const values = parseEnv(readFileSync(envPath, 'utf8'));
-  if (!values.AUTH_SECRET || values.AUTH_SECRET.length < 32) values.AUTH_SECRET = secret();
   if (!values.REVALIDATE_SECRET || values.REVALIDATE_SECRET.length < 16) {
     values.REVALIDATE_SECRET = secret();
   }
-  if (!values.DASHBOARD_OWNER_EMAIL) values.DASHBOARD_OWNER_EMAIL = 'owner@localhost';
-  if (!values.DASHBOARD_OWNER_PASSWORD) values.DASHBOARD_OWNER_PASSWORD = 'nora-local-owner';
   if (!values.WEBSITE_REVALIDATE_URL) {
     values.WEBSITE_REVALIDATE_URL = 'http://localhost:3001/api/revalidate';
   }
@@ -90,9 +87,6 @@ function main(): void {
     serializeEnv(
       {
         DATABASE_URL: values.DATABASE_URL,
-        AUTH_SECRET: values.AUTH_SECRET,
-        DASHBOARD_OWNER_EMAIL: values.DASHBOARD_OWNER_EMAIL,
-        DASHBOARD_OWNER_PASSWORD: values.DASHBOARD_OWNER_PASSWORD,
         REVALIDATE_SECRET: values.REVALIDATE_SECRET,
         WEBSITE_REVALIDATE_URL: values.WEBSITE_REVALIDATE_URL,
       },

@@ -21,7 +21,7 @@ export async function POST(request: Request) {
   if (!parsed.success) return jsonError('Invalid mutation', 400);
 
   const needed = parsed.data.op === 'delete' ? 'cms.delete' : 'cms.write';
-  const allowed = await requirePermission(session, needed);
+  const allowed = await requirePermission(session, needed, request);
   if (allowed instanceof Response) return allowed;
 
   const result = await applyMutation(parsed.data, {

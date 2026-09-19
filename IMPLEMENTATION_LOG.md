@@ -527,5 +527,15 @@ HomeView markup (`<Reveal><Link>`), locale routing, and Sanity data were not cha
 **Branch:** `cursor/colleague-handoff-readme-89ec` (from `cursor/postgres-website-cutover-89ec`)  
 **Change:** Added root `README.md` describing what already changed, local steps for the next person, and remaining production work. No application code in this commit. Secrets were not added.
 
+---
+
+## 2026-09-19 — Phase 4A: PostgreSQL User / Session authentication
+
+**Scope:** Dashboard login, sessions, `/api/users`, and RBAC now use Prisma `User` / `Session`. Argon2id (`argon2@0.45.1`) is a `@nora/dashboard` server-only dependency. No Prisma schema change. Website UI, Hero, Header, Footer, Theme, R2, and Sanity-removal work were not touched. No commit. No push.
+
+**Auth:** Argon2id hashes in `User.passwordHash`; `passwordAlgo = "argon2id"`. Opaque `nora_session` cookie; SHA-256 `Session.tokenHash`. Logout / disable / role change revoke sessions. One-time Owner via `pnpm bootstrap:owner`. Runtime no longer reads `DASHBOARD_OWNER_PASSWORD` or `.data/users.json`.
+
+**Report:** `PHASE_4_AUTH_IMPLEMENTATION_REPORT.md`.
+
 
 

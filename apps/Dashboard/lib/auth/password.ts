@@ -1,58 +1,32 @@
 import 'server-only';
-import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
+import argon2 from 'argon2';
 
-function copyBytes(source: ArrayLike<number>): Uint8Array {
-  const bytes = new Uint8Array(source.length);
-  for (let i = 0; i < source.length; i += 1) bytes[i] = source[i];
-  return bytes;
-}
+export const PASSWORD_ALGO = 'argon2id' as const;
 
-function toHex(bytes: Uint8Array): string {
-  let hex = '';
-  for (let i = 0; i < bytes.length; i += 1) {
-    hex += bytes[i].toString(16).padStart(2, '0');
+let dummyHashPromise: Promise<string> | null = null;
+
+function dummyHash(): Promise<string> {
+  if (!dummyHashPromise) {
+    dummyHashPromise = argon2.hash('dummy-not-used-for-login', { type: argon2.argon2id });
   }
-  return hex;
+  return dummyHashPromise;
 }
 
-function fromHex(hex: string): Uint8Array {
-  if (hex.length % 2 !== 0) {
-    throw new Error('invalid hex');
-  }
-  const bytes = new Uint8Array(hex.length / 2);
-  for (let i = 0; i < bytes.length; i += 1) {
-    bytes[i] = Number.parseInt(hex.slice(i * 2, i * 2 + 2), 16);
-  }
-  return bytes;
+export async function hashPassword(password: string): Promise<string> {
+  return argon2.hash(password, { type: argon2.argon2id });
 }
 
-export function hashPassword(password: string, salt: Uint8Array): string {
-  return toHex(copyBytes(scryptSync(password, salt, 64)));
-}
-
-export function createPasswordRecord(password: string): { salt: string; hash: string } {
-  const salt = copyBytes(randomBytes(16));
-  return { salt: toHex(salt), hash: hashPassword(password, salt) };
-}
-
-export function verifyPassword(password: string, saltHex: string, hashHex: string): boolean {
+export async function verifyPassword(password: string, passwordHash: string): Promise<boolean> {
   try {
-    const actual = fromHex(hashPassword(password, fromHex(saltHex)));
-    const expected = fromHex(hashHex);
-    return actual.length === expected.length && timingSafeEqual(actual, expected);
+    return await argon2.verify(passwordHash, password);
   } catch {
     return false;
   }
 }
 
-export function timingSafeStringEqual(left: string, right: string): boolean {
-  const encoder = new TextEncoder();
-  const a = encoder.encode(left);
-  const b = encoder.encode(right);
-  const size = Math.max(a.length, b.length, 1);
-  const pa = new Uint8Array(size);
-  const pb = new Uint8Array(size);
-  pa.set(a);
-  pb.set(b);
-  return timingSafeEqual(pa, pb) && a.length === b.length;
+/** Always performs a hash verify so unknown emails take a similar path. */
+export async function verifyPasswordOrDummy(password: string, passwordHash?: string): Promise<boolean> {
+  if (passwordHash) return verifyPassword(password, passwordHash);
+  await verifyPassword(password, await dummyHash());
+  return false;
 }

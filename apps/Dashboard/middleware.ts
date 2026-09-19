@@ -1,9 +1,16 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getAuthSecret, readSession } from '@/lib/auth/session';
+import { SESSION_COOKIE } from '@/lib/auth/session';
 
-export async function middleware(request: NextRequest) {
+/**
+ * Edge-safe cookie presence check only. Prisma cannot run in this middleware
+ * runtime. Full User/Session validation happens in Node route handlers and
+ * the root layout via resolveDatabaseSession().
+ */
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-nora-pathname', pathname);
 
   const isStaticAsset = /\.(?:ico|png|jpe?g|gif|webp|svg|txt|xml|woff2?|css|js|map)$/i.test(pathname);
 
@@ -14,29 +21,18 @@ export async function middleware(request: NextRequest) {
     pathname === '/login' ||
     isStaticAsset
   ) {
-    return NextResponse.next();
+    return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
-  const secret = getAuthSecret();
-  if (!secret) {
-    if (pathname.startsWith('/api/')) {
-      return NextResponse.json({ error: 'Authentication is not configured' }, { status: 503 });
-    }
-    if (pathname !== '/login') {
-      return NextResponse.redirect(new URL('/login', request.url));
-    }
-    return NextResponse.next();
-  }
-
-  const session = await readSession(request.cookies.get('nora_session')?.value, secret);
-  if (!session) {
+  const token = request.cookies.get(SESSION_COOKIE)?.value;
+  if (!token) {
     if (pathname.startsWith('/api/')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  return NextResponse.next();
+  return NextResponse.next({ request: { headers: requestHeaders } });
 }
 
 export const config = {

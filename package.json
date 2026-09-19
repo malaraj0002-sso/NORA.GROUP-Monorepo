@@ -26,6 +26,7 @@
     "prisma:seed": "prisma db seed",
     "setup:local": "pnpm prisma:generate && pnpm prisma:ensure-local && pnpm prisma migrate deploy && pnpm prisma:seed",
     "bootstrap": "tsx scripts/bootstrap-local.ts",
+    "bootstrap:owner": "pnpm --filter @nora/dashboard exec tsx ../../scripts/bootstrap-owner.ts",
     "db:up": "docker compose up -d --wait",
     "postgres:contract": "pnpm --filter @nora/web postgres:contract",
     "postgres:parity": "pnpm --filter @nora/web postgres:parity",

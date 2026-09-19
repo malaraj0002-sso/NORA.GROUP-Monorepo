@@ -4,7 +4,7 @@ import { jsonError, requirePermission, requireSession } from '@/lib/server/http'
 export async function GET(request: Request) {
   const session = await requireSession(request);
   if (session instanceof Response) return session;
-  const allowed = await requirePermission(session, 'cms.read');
+  const allowed = await requirePermission(session, 'cms.read', request);
   if (allowed instanceof Response) return allowed;
 
   const bundle = await readDashboardContent();

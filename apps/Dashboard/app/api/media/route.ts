@@ -34,7 +34,7 @@ export async function POST(request: Request) {
   if (!assertSameOrigin(request)) return jsonError('Invalid origin', 403);
   const session = await requireSession(request);
   if (session instanceof Response) return session;
-  const allowed = await requirePermission(session, 'media.upload');
+  const allowed = await requirePermission(session, 'media.upload', request);
   if (allowed instanceof Response) return allowed;
 
   let form: FormData;

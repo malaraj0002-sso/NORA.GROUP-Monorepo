@@ -1,9 +1,11 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { Inter, Playfair_Display } from 'next/font/google';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { AppProviders } from './providers';
-import { getAuthSecret, readSession } from '@/lib/auth/session';
+import { redirect } from 'next/navigation';
+import { SESSION_COOKIE } from '@/lib/auth/session';
+import { resolveDatabaseSession } from '@/lib/auth/session-store';
 import { emptyAdminData } from '@/lib/mock-data';
 import { DEFAULT_UI_LANG, parseUiLang, UI_LANG_COOKIE, uiDir } from '@/lib/i18n/ui-lang';
 import { translate } from '@/lib/i18n/messages';
@@ -26,12 +28,13 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const secret = getAuthSecret();
   const cookieStore = await cookies();
   const uiLang = parseUiLang(cookieStore.get(UI_LANG_COOKIE)?.value) ?? DEFAULT_UI_LANG;
-  const session = secret
-    ? await readSession(cookieStore.get('nora_session')?.value, secret)
-    : null;
+  const pathname = (await headers()).get('x-nora-pathname') || '';
+  const session = await resolveDatabaseSession(cookieStore.get(SESSION_COOKIE)?.value);
+  if (pathname && pathname !== '/login' && !pathname.startsWith('/api/') && !session) {
+    redirect('/login');
+  }
   const content = session
     ? await (await import('@/lib/server/content/postgres/read')).readDashboardContent()
     : { source: 'mock' as const, data: emptyAdminData };

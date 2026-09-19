@@ -119,10 +119,24 @@ export function UsersModule() {
             {users.map((user) => (
               <tr key={user.id} className="border-t border-border/40">
                 <td className="py-2">{user.email}</td>
-                <td>{t(ROLE_KEYS[user.role] ?? 'role.editor')}</td>
+                <td>
+                  {user.role === 'owner' ? (
+                    t(ROLE_KEYS.owner)
+                  ) : (
+                    <select
+                      className="h-8 rounded-md border border-input bg-background px-2"
+                      value={user.role}
+                      onChange={(event) => patchUser(user.id, { role: event.target.value })}
+                    >
+                      <option value="admin">{t('role.admin')}</option>
+                      <option value="editor">{t('role.editor')}</option>
+                      <option value="employee">{t('role.employee')}</option>
+                    </select>
+                  )}
+                </td>
                 <td>{user.enabled ? t('common.enabled') : t('common.disabled')}</td>
                 <td className="text-end">
-                  {user.id !== 'env-owner' ? (
+                  {user.role !== 'owner' ? (
                     <button
                       type="button"
                       className="text-xs text-gold"

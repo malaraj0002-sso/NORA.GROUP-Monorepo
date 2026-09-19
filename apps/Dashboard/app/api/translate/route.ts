@@ -87,7 +87,7 @@ async function saveReviews(items: ReviewItem[]) {
 export async function GET(request: Request) {
   const session = await requireSession(request);
   if (session instanceof Response) return session;
-  const allowed = await requirePermission(session, 'translations.manage');
+  const allowed = await requirePermission(session, 'translations.manage', request);
   if (allowed instanceof Response) return allowed;
   const items = await loadReviews();
   return Response.json({ items: items.filter((i) => i.status === 'pending') });
@@ -100,7 +100,7 @@ export async function POST(request: Request) {
 
   const session = await requireSession(request);
   if (session instanceof Response) return session;
-  const allowed = await requirePermission(session, 'translations.manage');
+  const allowed = await requirePermission(session, 'translations.manage', request);
   if (allowed instanceof Response) return allowed;
 
   const apiKey = process.env.TRANSLATION_API_KEY?.trim();
@@ -194,7 +194,7 @@ export async function PATCH(request: Request) {
   if (!assertSameOrigin(request)) return jsonError('Invalid origin', 403);
   const session = await requireSession(request);
   if (session instanceof Response) return session;
-  const allowed = await requirePermission(session, 'translations.manage');
+  const allowed = await requirePermission(session, 'translations.manage', request);
   if (allowed instanceof Response) return allowed;
 
   let payload: unknown;

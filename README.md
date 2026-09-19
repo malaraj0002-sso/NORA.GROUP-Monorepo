@@ -15,10 +15,11 @@ This document is the handoff for whoever continues after the 2026-09-18 Postgres
 - **Code it contains:** the website→Postgres cutover plus this README
 - **Earlier cutover branch / PR:** `cursor/postgres-website-cutover-89ec` — https://github.com/malaraj0002-sso/NORA.GROUP-Monorepo/pull/2
 
-Default local Owner login after `pnpm bootstrap`:
+After `pnpm bootstrap`, create the first Dashboard Owner in PostgreSQL (one-time, password is not stored in env):
 
-- email: `owner@localhost`
-- password: `nora-local-owner`
+```bash
+OWNER_BOOTSTRAP_EMAIL=owner@localhost OWNER_BOOTSTRAP_PASSWORD=******** pnpm bootstrap:owner
+```
 
 Never commit `.env`, `.env.local`, passwords, tokens, or real `DATABASE_URL` values.
 
@@ -31,7 +32,7 @@ Never commit `.env`, `.env.local`, passwords, tokens, or real `DATABASE_URL` val
 - `pnpm bootstrap` / `apps/web/scripts/seed-postgres.ts` load the existing marketing catalog into Postgres (homepage, seven services, projects, materials, testimonials, FAQ, blog). That is the copy the Dashboard should show for edit/delete — **once Postgres is running and seeded**.
 - Shared local uploads live in `storage/media`. The website serves `GET /api/media/[id]`.
 - Linux helper `scripts/fix-linux-dev.sh` repairs interrupted `dpkg`, installs/starts PostgreSQL, or starts Docker Postgres as a fallback, then bootstraps and seeds.
-- Dashboard login works even if the database is down. **Empty Homepage boxes mean Postgres is not connected.** They are placeholders, not the live website. The public site can still render built-in seed copy when the database is down; that fallback is not editable CMS data.
+- Dashboard login requires PostgreSQL `User` + `Session`. **Empty Homepage boxes mean Postgres is not connected.** They are placeholders, not the live website. The public site can still render built-in seed copy when the database is down; that fallback is not editable CMS data.
 
 Yousef’s Linux Mint laptop (`yousefhedmi-TM1703`): package setup (`sudo dpkg --configure -a`) was interrupted during NVIDIA DKMS compile. **PostgreSQL was not installed. Local CMS edit→site was not verified.** The next person should finish `dpkg`, then install Postgres, then seed. Do not Ctrl+C `dpkg --configure -a`.
 
@@ -96,14 +97,12 @@ Pointing a domain at a laptop will not publish the site. This branch is **not pr
 4. Deploy **two** Next.js apps (website + dashboard), typically two Vercel projects with root directories `apps/web` and `apps/Dashboard`.
 5. Set production environment variables (names only — never put real secrets in git):
    - `DATABASE_URL` — hosted Postgres
-   - `AUTH_SECRET` — at least 32 characters
-   - `DASHBOARD_OWNER_EMAIL` / `DASHBOARD_OWNER_PASSWORD`
    - `REVALIDATE_SECRET` — same value on both apps
    - `WEBSITE_REVALIDATE_URL` — public website `https://…/api/revalidate`
    - `NEXT_PUBLIC_SITE_URL` — real `https` domain
 6. DNS: apex/www → website; e.g. `admin.` → dashboard.
 7. **Durable media:** uploads today use `storage/media` on disk. Add object storage (Cloudflare R2 / S3 or equivalent) before serverless hosting, or images will vanish on redeploy.
-8. **Durable extra CMS users:** extra accounts live in `.data/users.json` (not durable on Vercel). Owner-from-env is enough for a single operator. Prisma `User` / `Session` is still outstanding.
+8. **Dashboard users** live in PostgreSQL (`User` / `Session`). Create the first Owner with `pnpm bootstrap:owner`. Do not use env passwords or `.data/users.json`.
 9. Content pass in the Dashboard: seed is starter marketing copy. Replace with real photos, projects, and contact details.
 10. Optional: `TRANSLATION_API_KEY` for AI translation drafts (human review still required).
 11. Run `pnpm check` (typecheck + production builds) before deploy.
